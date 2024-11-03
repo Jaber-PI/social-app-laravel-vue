@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Post;
+use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,7 +14,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('comments', function (Blueprint $table) {
+
             $table->id();
+            $table->foreignIdFor(Post::class)->constrained()->onDelete('cascade'); // Foreign key with cascade on delete
+            $table->foreignIdFor(User::class)->constrained()->onDelete('cascade'); // Foreign key with cascade on delete
+            $table->text('comment');
             $table->timestamps();
         });
     }

@@ -13,6 +13,15 @@ return new class extends Migration
     {
         Schema::create('groups', function (Blueprint $table) {
             $table->id();
+            $table->string('name',255);
+            $table->string('slug',255);
+            $table->text('description')->nullable();
+            $table->string('cover_path')->nullable();
+            $table->string('thumbnail_path')->nullable();
+            $table->foreignId('created_by')->constrained('users');
+            $table->foreignId('updated_by')->nullable()->constrained('users');
+            $table->foreignId('deleted_by')->nullable()->constrained('users');
+            $table->softDeletes();
             $table->timestamps();
         });
     }
