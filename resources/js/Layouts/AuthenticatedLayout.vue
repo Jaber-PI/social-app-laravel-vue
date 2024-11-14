@@ -1,10 +1,5 @@
 <script setup>
 import { ref } from 'vue';
-import {
-    Disclosure,
-    DisclosureButton,
-    DisclosurePanel,
-} from '@headlessui/vue'
 
 import DisclosureNavItem from '@/Components/app/DisclosureNavItem.vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
@@ -12,12 +7,15 @@ import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import GroupList from '@/Components/app/GroupList.vue';
-import { ChevronUpIcon } from '@heroicons/vue/24/solid';
 import FriendList from '@/Components/app/FriendList.vue';
 
+const user = usePage().props.auth.user;
+
 const showingNavigationDropdown = ref(false);
+
+
 </script>
 
 <template>
@@ -65,7 +63,7 @@ const showingNavigationDropdown = ref(false);
                                     </template>
 
                                     <template #content>
-                                        <DropdownLink :href="route('profile.edit')">
+                                        <DropdownLink :href="route('profile.show',user.username)">
                                             Profile
                                         </DropdownLink>
                                         <DropdownLink :href="route('logout')" method="post" as="button">
