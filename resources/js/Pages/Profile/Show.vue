@@ -7,6 +7,12 @@ import TabItem from './Partials/TabItem.vue';
 import About from './Partials/About.vue';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import MainLayout from '@/Layouts/MainLayout.vue';
+import { PhotoIcon } from '@heroicons/vue/20/solid';
+import { ref } from 'vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import Cover from './Partials/Cover.vue';
+import Avatar from './Partials/Avatar.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
 
 const user = usePage().props.auth.user;
 
@@ -38,14 +44,11 @@ const props = defineProps({
         <div class="h-full overflow-auto">
 
             <section class="relative flex justify-center items-center h-[500px]">
-                <div class="absolute top-0 w-full h-full bg-center bg-cover" style="
-            background-image: url('https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=crop&amp;w=2710&amp;q=80');
-          ">
-                    <span id="blackOverlay" class="w-full h-full absolute opacity-60 bg-black"></span>
-                </div>
+
+                <Cover :can="can" :profile="profile" />
+
                 <div class="-mt-44 text-center flex flex-col items-center z-10">
-                    <img alt="..." :src="profile.avatar_path"
-                        class="shadow-xl rounded-full h-auto align-middle border-none max-w-[100px]">
+                    <Avatar :can="can" :user="profile" />
                     <h3 class="text-3xl font-semibold text-center leading-normal text-gray-200 my-2">
                         {{ profile.name.toUpperCase() }}
                     </h3>
@@ -120,7 +123,8 @@ const props = defineProps({
                                             <!-- about section tab  -->
                                             <TabPanel>
                                                 <!-- about component  -->
-                                                <About :user="profile" :canEdit="can.edit" :must-verify-email="mustVerifyEmail" :status="status" />
+                                                <About :user="profile" :canEdit="can.edit"
+                                                    :must-verify-email="mustVerifyEmail" :status="status" />
                                             </TabPanel>
 
                                             <TabPanel :class="[
