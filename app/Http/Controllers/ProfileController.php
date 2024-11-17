@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -27,7 +28,7 @@ class ProfileController extends Controller
             'status' => session('status'),
             "can" => [
                 "connect" => Auth::user() ? true : false,
-                "edit" => Auth::user()->is($user) ? true : false,
+                "edit" => Auth::user()?->is($user) ? true : false,
             ]
         ]);
     }
@@ -78,5 +79,37 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+
+    // save cover and avatara image
+    public function saveImage(Request $request, User $user)
+    {
+        $data = $request->validate([
+            'cover' => ['image', 'nullable'],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+        ]);
+
+        if (isset($data['cover'])) {
+            if ($user->cover_path != null) {
+                Storage::disk('public')->delete($user->cover_path);
+            }
+
+            $file = $data['cover'];
+            $fileName = time() . '.' . $file->extension();
+            $dirName = 'images/covers/' . $user->id;
+            $user->cover_path = $file->storeAs($dirName, $fileName, 'public');
+            $user->save();
+
+            return response()->json(['success' => 'Cover have been successfully Updated.']);
+        }
+        if (isset($data['avatar'])) {
+            $file = $data['avatar'];
+            $fileName = time() . '.' . $file->extension();
+            $dirName = 'images/avatars/' . $user->id;
+            $user->avatar_path = $file->storeAs($dirName, $fileName);
+            $user->save();
+            return response()->json(['success' => 'Avatar have been successfully Updated.']);
+        }
     }
 }
