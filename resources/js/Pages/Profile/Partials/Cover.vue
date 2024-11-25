@@ -3,7 +3,6 @@
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { PhotoIcon } from '@heroicons/vue/20/solid';
 import { useForm } from '@inertiajs/vue3';
-import axios from 'axios';
 import { ref } from 'vue';
 import Avatar from './Avatar.vue';
 
@@ -17,7 +16,6 @@ const props = defineProps({
     },
 })
 
-console.log(props.profile);
 
 const defaultCoverImage = ref('/images/cover-default.jpg');
 
