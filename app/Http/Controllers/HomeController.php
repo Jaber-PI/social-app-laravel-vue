@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\PostResource;
+use App\Models\Post;
 use Inertia\Inertia;
 
 class HomeController extends Controller
@@ -11,6 +13,11 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return Inertia::render('Home');
+
+        $posts = Post::with('author')->latest()->paginate(6);
+
+        return Inertia::render('Home', [
+            'posts' => PostResource::collection($posts),
+        ]);
     }
 }

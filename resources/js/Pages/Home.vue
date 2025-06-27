@@ -6,7 +6,13 @@ import { Head, Link } from '@inertiajs/vue3';
 import FriendList from '@/Components/app/FriendList.vue';
 import PostList from '@/Components/app/PostList.vue';
 
-const posts = [
+import NewPost from '@/Components/app/NewPost.vue';
+
+const props = defineProps({
+    posts: Object,
+});
+
+const posts2 = [
     {
         id: 1,
         author: {
@@ -14,7 +20,7 @@ const posts = [
             image: 'images/monir.jpeg',
             email: "jabe@er",
         },
-        message: "hello There, Lorem Ipsum, bla bla, hello There, Lorem Ipsum, bla bla , hello There, Lorem Ipsum, bla bla",
+        body: "hello There, Lorem Ipsum, bla bla, hello There, Lorem Ipsum, bla bla , hello There, Lorem Ipsum, bla bla",
         createdAt: "22/02/2024",
         group: {
             id: 1,
@@ -53,7 +59,7 @@ const posts = [
             image: 'images/monir.jpeg',
             email: "jabe@er",
         },
-        message: "hello There, Lorem Ipsum, bla bla, hello There, Lorem Ipsum, bla bla , hello There, Lorem Ipsum, bla bla",
+        body: "hello There, Lorem Ipsum, bla bla, hello There, Lorem Ipsum, bla bla , hello There, Lorem Ipsum, bla bla",
         createdAt: "22/02/2024",
 
     },
@@ -64,7 +70,7 @@ const posts = [
             image: 'images/monir.jpeg',
             email: "jabe@er",
         },
-        message: "hello There, Lorem Ipsum, bla bla, hello There, Lorem Ipsum, bla bla , hello There, Lorem Ipsum, bla bla",
+        body: "hello There, Lorem Ipsum, bla bla, hello There, Lorem Ipsum, bla bla , hello There, Lorem Ipsum, bla bla",
         createdAt: "22/02/2024",
         attachments: [
             {
@@ -77,20 +83,10 @@ const posts = [
     },
 ]
 
-
-
-function handleImageError() {
-    document.getElementById('screenshot-container')?.classList.add('!hidden');
-    document.getElementById('docs-card')?.classList.add('!row-span-1');
-    document.getElementById('docs-card-content')?.classList.add('!flex-row');
-    document.getElementById('background')?.classList.add('!hidden');
-}
 </script>
 
 <template>
-
     <Head title="Home" />
-
     <AuthenticatedLayout>
         <div class="container mx-auto h-full py-1">
             <div class=" px-3 py-4 h-full">
@@ -104,20 +100,19 @@ function handleImageError() {
                             <FriendList />
                         </div>
                     </aside>
-
                     <!-- Main Feed -->
-                    <main class="col-span-1 md:col-span-2 overflow-auto h-full scroll-smooth">
+                    <main class="col-span-1 md:col-span-2 overflow-auto h-full scroll-smooth px-2">
                         <!-- More posts can be added here -->
-                        <PostList :posts="posts" />
+                        <div class="">
+                            <div class="mb-3">
+                                <NewPost />
+                            </div>
+                            <PostList :posts="posts.data" />
+                            <!-- <PostList :posts="posts2" /> -->
+                        </div>
                     </main>
-
-
                 </div>
             </div>
-
         </div>
-
     </AuthenticatedLayout>
-
-
 </template>

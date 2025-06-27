@@ -1,27 +1,35 @@
 <?php
 
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', [HomeController::class,'index'])->middleware(['auth', 'verified'])->name('home');
+Route::get('/', [HomeController::class, 'index'])->middleware(['auth', 'verified'])->name('home');
 
-Route::get('/profile/{user:username}', [ProfileController::class,'show'])->name('profile.show');
+Route::get('/profile/{user:username}', [ProfileController::class, 'show'])->name('profile.show');
 
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+Route::middleware(['auth', 'verified'])->group(function () {
 
-    // route to update and save image (avatar or cover )
-    Route::post('/profile/{user}/image', [ProfileController::class, 'saveImage'])->name('profile.image.store');
+    Route::prefix('/post')->controller(PostController::class)->name('post.')->group(function () {
+        Route::post('', 'store')->name('store');
+        Route::put('/{post}', 'update')->name('update');
+        Route::delete('/{post}', 'destroy')->name('delete');
+    });
 
+    Route::prefix('/profile')->controller(ProfileController::class)->name('profile.')->group(function () {
+        Route::get('', 'edit')->name('edit');
+        Route::patch('', 'update')->name('update');
+        Route::delete('', 'destroy')->name('delete');
+        // route to update and save image (avatar or cover )
+        Route::post('/{user}/image', 'saveImage')->name('image.store');
+    });
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

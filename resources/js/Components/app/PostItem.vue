@@ -1,8 +1,13 @@
 <script setup>
 import { ChatBubbleOvalLeftEllipsisIcon, HandThumbUpIcon, ShareIcon } from "@heroicons/vue/24/solid";
-import { ref } from "vue";
 
-defineProps({
+import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
+import { ChevronDownIcon } from '@heroicons/vue/20/solid'
+
+import { ref } from "vue";
+import { router } from "@inertiajs/vue3";
+
+const props = defineProps({
     post: Object
 })
 
@@ -17,15 +22,71 @@ const isImage = (attachment) => {
     return mime[0].toLowerCase() === "image";
 }
 
+const emit = defineEmits(['editClick']);
+const editClick = () => {
+    emit('editClick', props.post);
+}
+
+
+function deletePost() {
+    if (window.confirm("Are You sure to Delete this Post?")) {
+        router.delete(route('post.delete', props.post.id),{
+            preserveScroll: true
+        });
+    }
+}
+
 </script>
 
 <template>
-    <div class="flex flex-col bg-white p-2 rounded-2xl shadow-sm">
+    <div class="flex relative flex-col bg-white p-2 rounded-2xl shadow-sm">
+
+
+        <!-- dropdown menu  -->
+        <Menu as="div" class="absolute top-4 right-4 inline-block text-left z-20">
+            <div>
+                <MenuButton
+                    class="inline-flex w-full justify-center rounded-md  px-4 py-2 text-sm font-medium text-black  focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75">
+                    <ChevronDownIcon class="-mr-1 ml-2 h-5 w-5 text-gray-400 hover:text-black" aria-hidden="true" />
+                </MenuButton>
+            </div>
+
+            <transition enter-active-class="transition duration-100 ease-out"
+                enter-from-class="transform scale-95 opacity-0" enter-to-class="transform scale-100 opacity-100"
+                leave-active-class="transition duration-75 ease-in" leave-from-class="transform scale-100 opacity-100"
+                leave-to-class="transform scale-95 opacity-0">
+                <MenuItems
+                    class="absolute right-0  w-40 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
+                    <div class="px-1 py-1">
+                        <MenuItem v-slot="{ active }">
+                        <button :class="[
+                            active ? 'bg-gray-400 text-white' : 'text-gray-900',
+                            'group flex w-full items-center rounded-md px-1 py-1 text-xs',
+                        ]" @click="editClick">
+                            Edit
+                        </button>
+                        </MenuItem>
+                    </div>
+                    <div class="px-1 py-1">
+                        <MenuItem v-slot="{ active }">
+                        <button :class="[
+                            active ? 'bg-gray-400 text-white' : 'text-gray-900',
+                            'group flex w-full items-center rounded-md px-1 py-1 text-xs',
+                        ]" @click="deletePost">
+                            Delete
+                        </button>
+                        </MenuItem>
+                    </div>
+                </MenuItems>
+            </transition>
+        </Menu>
+
+
         <!-- post header  -->
         <div class="p-3 bg-white ">
             <div class="flex items-center space-x-2">
-                <img class="rounded-full icon border-2 hover:border-blue-500 transition-all" :src="post.author.image"
-                    width="40" height="40" />
+                <img class="rounded-full icon border-2 hover:border-blue-500 transition-all w-9 h-9"
+                    :src="post.author.avatar_url" />
                 <div>
                     <div class="flex">
                         <p class="font-medium hover:underline cursor-pointer">{{ post.author.name }}
@@ -36,22 +97,22 @@ const isImage = (attachment) => {
                                 {{ post.group.name }}</p>
                         </template>
                     </div>
-                    <p v-if="post.createdAt" class="text-xs text-gray-400">
-                        {{ new Date(post.createdAt).toLocaleString() }}
+                    <p v-if="post.created_at" class="text-xs text-gray-400">
+                        {{ new Date(post.created_at).toLocaleString() }}
                     </p>
                     <p v-else class="text-xs text-gray-400">Loading</p>
                 </div>
             </div>
 
-            <div class="wrapper-description">
+            <div class="wrapper-description cursor-pointer">
                 <div v-if="readMore" :class="{ readLess: readMore == true }" class="description-info">
-                    <p class="pt-4">{{ post.message }}</p>
+                    <p class="pt-4">{{ post.body }}</p>
                 </div>
                 <div v-else class="description-info">
-                    <p class="pt-4">{{ post.message.slice(0, 60) + "..." }}</p>
+                    <p class="pt-4">{{ post.body.slice(0, 150) }}</p>
                 </div>
 
-                <div v-if="post.message.length > 60" class="readMore text-blue-500 flex justify-end">
+                <div v-if="post.body.length > 60" class="readMore text-blue-500 flex justify-end">
                     <button @click="toggleReadMore">{{ readMore ? "Read Less" : "Read More" }}</button>
                 </div>
             </div>
