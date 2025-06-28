@@ -106,12 +106,11 @@ function deletePost() {
 
             <div class="wrapper-description cursor-pointer">
                 <div v-if="readMore" :class="{ readLess: readMore == true }" class="description-info">
-                    <p class="pt-4">{{ post.body }}</p>
+                    <div class="pt-2 ck-content" v-html="post.body"></div>
                 </div>
                 <div v-else class="description-info">
-                    <p class="pt-4">{{ post.body.slice(0, 150) }}</p>
+                    <div class="pt-2 ck-content" v-html="post.body.slice(0, 150)"></div>
                 </div>
-
                 <div v-if="post.body.length > 60" class="readMore text-blue-500 flex justify-end">
                     <button @click="toggleReadMore">{{ readMore ? "Read Less" : "Read More" }}</button>
                 </div>

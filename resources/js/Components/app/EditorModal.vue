@@ -2,10 +2,11 @@
 import ModalHeadless from '../ModalHeadless.vue';
 import { useForm } from '@inertiajs/vue3';
 
-import TextareaInput from "../TextareaInput.vue";
-import { computed, onMounted } from 'vue';
+// import TextareaInput from "../TextareaInput.vue";
+import { computed, ref } from 'vue';
 import PrimaryButton from '../PrimaryButton.vue';
 
+import Editor from '../Editor.vue';
 
 const props = defineProps({
     post: {
@@ -29,24 +30,24 @@ const show = computed({
 }
 )
 
-
 const onSubmit = () => {
-    form.put(route('post.update', props.post), {
-        preserveScroll: true,
-    });
-    emit('update:modelValue', false);
-    return;
-};
-const addImageToPost = (e) => {
-    return;
-};
-const removeImage = () => {
+    if (form.id) {
+        form.put(route('post.update', props.post), {
+            preserveScroll: true,
+        });
+        emit('update:modelValue', false);
+    } else {
+        form.post(route('post.store'), {
+            preserveScroll: true,
+            onSuccess: () => {
+                form.reset();
+            }
+        });
+    }
+    show.value = false;
     return;
 };
 
-onMounted(() => {
-    console.log(props.post);
-})
 </script>
 
 <template>
@@ -78,7 +79,9 @@ onMounted(() => {
                     <div class="wrapper-description cursor-pointer">
 
                         <div class="description-info">
-                            <TextareaInput v-model.trim="form.body" class="w-full mt-2 p-3" rows="1" />
+                            <Editor v-model="form.body" />
+                            <!-- <Ckeditor :editor="editor" :model-value="data" :config="editorConfig" /> -->
+                            <!-- <TextareaInput v-model.trim="form.body" class="w-full mt-2 p-3" rows="1" /> -->
                         </div>
 
                     </div>
@@ -117,7 +120,7 @@ onMounted(() => {
                     </div>
                 </div>
                 <div class="mt-2 px-3 flex justify-between">
-                    <PrimaryButton @click="onSubmit">Update </PrimaryButton>
+                    <PrimaryButton @click="onSubmit">{{ post.id ? 'Update' : 'Create'}} </PrimaryButton>
                     <button type="button"
                         class="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                         @click="show = false">
