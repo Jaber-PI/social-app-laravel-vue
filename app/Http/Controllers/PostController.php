@@ -5,9 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use App\Models\Post;
+use App\Models\PostAttachment;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
@@ -27,10 +31,24 @@ class PostController extends Controller
     public function store(StorePostRequest $request)
     {
         $data = $request->validated();
+        DB::beginTransaction();
+        $allFilesPaths = [];
 
-        Auth::user()->posts()->create($data);
-
-        return redirect()->back()->with('success', 'post created');
+        try {
+            $attachments = $data['attachments'];
+            unset($data['attachments']);
+            $post = Auth::user()->posts()->create($data);
+            $allFilesPaths = $post->addAttachments($attachments);
+            DB::commit();
+            return redirect()->back()->with('success', 'post created');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            foreach ($allFilesPaths as $path) {
+                Storage::disk('public')->delete($path);
+            }
+            // throw $e;
+            return redirect()->back()->with('error', 'post not created');
+        }
     }
 
     /**
@@ -54,7 +72,27 @@ class PostController extends Controller
      */
     public function update(UpdatePostRequest $request, Post $post)
     {
-        $post->update($request->validated());
+        $data = $request->validated();
+        DB::beginTransaction();
+
+        try {
+            $attachments = $data['attachments'];
+            $deleted_attachments = $data['deleted_attachments'];
+            unset($data['attachments'], $data['deleted_attachments']);
+            $post->update($data);
+            if ($attachments) {
+                $post->addAttachments($attachments);
+            }
+            foreach ($deleted_attachments as $attachment) {
+                PostAttachment::destroy($attachment);
+            }
+            DB::commit();
+            return redirect()->back()->with('success', 'post updated');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+            return redirect()->back()->with('error', 'post not updatedd');
+        }
         return back();
     }
 
@@ -68,5 +106,11 @@ class PostController extends Controller
         }
 
         $post->delete();
+    }
+
+
+    public function downloadAttachment(PostAttachment $attachment)
+    {
+        return Storage::disk('public')->download($attachment->file_path, $attachment->filename);
     }
 }

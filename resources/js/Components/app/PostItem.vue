@@ -7,6 +7,8 @@ import { ChevronDownIcon } from '@heroicons/vue/20/solid'
 import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
 
+import { isImage } from "@/helpers";
+
 const props = defineProps({
     post: Object
 })
@@ -17,10 +19,6 @@ const toggleReadMore = () => {
     readMore.value = !readMore.value;
 }
 
-const isImage = (attachment) => {
-    const mime = attachment.mime.split('/');
-    return mime[0].toLowerCase() === "image";
-}
 
 const emit = defineEmits(['editClick']);
 const editClick = () => {
@@ -30,12 +28,14 @@ const editClick = () => {
 
 function deletePost() {
     if (window.confirm("Are You sure to Delete this Post?")) {
-        router.delete(route('post.delete', props.post.id),{
+        router.delete(route('post.delete', props.post.id), {
             preserveScroll: true
         });
     }
 }
-
+function downloadFile(id) {
+    window.open(route('attachments.download', id), '_blank');
+}
 </script>
 
 <template>
@@ -58,11 +58,8 @@ function deletePost() {
                 <MenuItems
                     class="absolute right-0  w-40 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
                     <div class="px-1 py-1">
-                        <MenuItem v-slot="{ active }">
-                        <button :class="[
-                            active ? 'bg-gray-400 text-white' : 'text-gray-900',
-                            'group flex w-full items-center rounded-md px-1 py-1 text-xs',
-                        ]" @click="editClick">
+                        <MenuItem>
+                        <button class='group flex w-full items-center rounded-md px-1 py-1 text-xs' @click="editClick">
                             Edit
                         </button>
                         </MenuItem>
@@ -120,10 +117,11 @@ function deletePost() {
         <!-- attachments section  -->
         <div v-if="post.attachments"
             class="relative w-full rounded-t-2xl grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-1">
-            <div v-for="attachment of post.attachments" :key="attachment.id" class="group overflow-hidden relative">
-                <button
+            <div v-for="(attachment, ind) of post.attachments.slice(0, 4)" :key="attachment.id"
+                class="group overflow-hidden relative aspect-square">
+                <!-- download button  -->
+                <button @click="downloadFile(attachment.id)"
                     class=" absolute right-1 cursor-pointer bottom-1 z-10 text-white p-1 bg-blue-400 rounded-full transition-all opacity-0 group-hover:opacity-100">
-
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -131,7 +129,15 @@ function deletePost() {
                     </svg>
                 </button>
 
-                <img v-if="isImage(attachment)" :src="attachment.url" class="object-cover w-full" loading="lazy" />
+                <div v-if="ind == 3 && post.attachments.length > 4"
+                    class="absolute inset-0 z-10 bg-black opacity-60 text-center flex justify-center items-center text-xl text-white font-bold">
+                    <div class="text-white">
+                        And {{ post.attachments.length - 3 }} Files More.
+                    </div>
+                </div>
+
+                <img v-if="isImage(attachment)" :src="attachment.url" class="object-cover h-full w-full"
+                    loading="lazy" />
 
                 <div v-else class="grid place-content-center bg-blue-100 aspect-square">
                     <p class="text-xl text-center">

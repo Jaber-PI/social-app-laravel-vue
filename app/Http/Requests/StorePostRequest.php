@@ -22,14 +22,21 @@ class StorePostRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'body' => ['string', 'nullable', 'max:255']
+            'body' => ['string', 'nullable', 'max:255'],
+            'attachments' => [ 'array','max:10'], // Must be an array of files
+            'attachments.*' => [
+                'file',                             // Each item must be a file
+                'mimes:jpg,jpeg,png,pdf,doc,docx.mp3,mp4',  // Allowed file types
+                'max:2048',                         //
+            ],
         ];
     }
 
     protected function prepareForValidation()
     {
         $this->merge([
-            'body' => $this->input('body') ?: ''
+            'body' => $this->input('body') ?: '',
+            'attachments' => $this->input('attachments', []),
         ]);
     }
 }

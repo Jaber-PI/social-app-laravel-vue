@@ -14,7 +14,7 @@ class HomeController extends Controller
     public function index()
     {
 
-        $posts = Post::with('author')->latest()->paginate(6);
+        $posts = Post::with('author','attachments')->latest()->get();
 
         return Inertia::render('Home', [
             'posts' => PostResource::collection($posts),

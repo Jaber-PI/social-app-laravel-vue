@@ -21,7 +21,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('', 'store')->name('store');
         Route::put('/{post}', 'update')->name('update');
         Route::delete('/{post}', 'destroy')->name('delete');
+
     });
+
+    Route::get('/attachments/{attachment}/download', [PostController::class, 'downloadAttachment'])
+    ->name('attachments.download');
 
     Route::prefix('/profile')->controller(ProfileController::class)->name('profile.')->group(function () {
         Route::get('', 'edit')->name('edit');

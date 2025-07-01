@@ -26,12 +26,31 @@ class Post extends Model
         return $this->belongsTo(Group::class, 'group_id');
     }
 
-    public function comments() {
+    public function comments()
+    {
         return $this->hasMany(Comment::class);
     }
 
 
-    public function attachments() {
+    public function attachments()
+    {
         return $this->hasMany(PostAttachment::class);
+    }
+
+    public function addAttachments($attachments)
+    {
+        foreach ($attachments as $attachment) {
+            $allFilesPaths = [];
+            $path = $attachment->store("attachments/posts/{$this->id}", 'public');
+            $allFilesPaths[] = $path;
+            // Optionally save info in DB
+            $this->attachments()->create([
+                'filename' => $attachment->getClientOriginalName(),
+                'file_path' => $path,
+                'mime_type' => $attachment->getMimeType(),
+                'file_size' => $attachment->getSize(),
+            ]);
+        }
+        return $allFilesPaths ?? 0;
     }
 }

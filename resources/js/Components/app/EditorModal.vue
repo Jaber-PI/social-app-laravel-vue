@@ -1,12 +1,14 @@
 <script setup>
 import ModalHeadless from '../ModalHeadless.vue';
-import { useForm } from '@inertiajs/vue3';
+import { router, useForm } from '@inertiajs/vue3';
 
 // import TextareaInput from "../TextareaInput.vue";
 import { computed, ref } from 'vue';
 import PrimaryButton from '../PrimaryButton.vue';
 
 import Editor from '../Editor.vue';
+import { isImage } from '@/helpers';
+import { PaperClipIcon, XMarkIcon } from '@heroicons/vue/24/solid';
 
 const props = defineProps({
     post: {
@@ -19,8 +21,9 @@ const props = defineProps({
 const form = useForm({
     body: props.post.body,
     id: props.post.id,
+    attachments: [],
+    deleted_attachments: []
 })
-
 
 const emit = defineEmits('update:modelValue');
 
@@ -30,11 +33,31 @@ const show = computed({
 }
 )
 
+const newAttachments = ref([]);
+const oldAttachments = ref(props.post.attachments || [])
+
+const postAttachments = computed(
+    () => [...oldAttachments.value, ...newAttachments.value]
+);
+
+function removeAttachment(attachment) {
+    if (attachment.id) {
+        oldAttachments.value = oldAttachments.value.filter(file => file != attachment);
+        form.deleted_attachments.push(attachment.id);
+    } else {
+        newAttachments.value = newAttachments.value.filter(file => file != attachment);
+    }
+}
 const onSubmit = () => {
+    form.attachments = newAttachments.value.map(f => f.file);
+
     if (form.id) {
-        form.put(route('post.update', props.post), {
-            preserveScroll: true,
-        });
+        router.post(route('post.update', props.post), {
+            _method: 'put',
+            body: form.body,
+            attachments: form.attachments,
+            deleted_attachments: form.deleted_attachments,
+        })
         emit('update:modelValue', false);
     } else {
         form.post(route('post.store'), {
@@ -43,11 +66,44 @@ const onSubmit = () => {
                 form.reset();
             }
         });
+        emit('update:modelValue', false);
     }
-    show.value = false;
+    closeModal();
     return;
 };
 
+async function onFileChosen($event) {
+    for (const file of $event.target.files) {
+        const myFile = {
+            file,
+            src: await readFile(file)
+        }
+        newAttachments.value.push(myFile);
+    };
+    $event.target.value = null;
+}
+
+function readFile(file) {
+    return new Promise((res, rej) => {
+        if (isImage({ mime: file.type })) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                res(reader.result);
+            }
+            reader.onerror = rej;
+            reader.readAsDataURL(file);
+        } else {
+            res(null);
+        }
+    })
+}
+
+
+
+function closeModal() {
+    postAttachments.value = [];
+    show.value = false;
+}
 </script>
 
 <template>
@@ -80,21 +136,20 @@ const onSubmit = () => {
 
                         <div class="description-info">
                             <Editor v-model="form.body" />
-                            <!-- <Ckeditor :editor="editor" :model-value="data" :config="editorConfig" /> -->
-                            <!-- <TextareaInput v-model.trim="form.body" class="w-full mt-2 p-3" rows="1" /> -->
+
                         </div>
 
                     </div>
                 </div>
 
                 <!-- attachments section  -->
-                <div v-if="post.attachments"
+                <div v-if="postAttachments"
                     class="relative w-full rounded-t-2xl grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-1">
-                    <div v-for="attachment of post.attachments" :key="attachment.id"
-                        class="group overflow-hidden relative">
+                    <div v-for="(attachment, ind) of postAttachments" :key="ind"
+                        class="group overflow-hidden aspect-square relative">
+                        <!-- download icon  -->
                         <button
-                            class=" absolute right-1 cursor-pointer bottom-1 z-10 text-white p-1 bg-blue-400 rounded-full transition-all opacity-0 group-hover:opacity-100">
-
+                            class=" absolute right-1 cursor-pointer bottom-1 z-10 font-bold text-white p-1 bg-blue-400 rounded-full transition-all opacity-0 group-hover:opacity-100">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                 stroke="currentColor" class="size-4">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -102,28 +157,48 @@ const onSubmit = () => {
                             </svg>
                         </button>
 
-                        <img v-if="isImage(attachment)" :src="attachment.url" class="object-cover w-full"
-                            loading="lazy" />
+                        <!-- delete attachment icon  -->
+                        <button @click="removeAttachment(attachment)"
+                            class="absolute right-1 cursor-pointer top-1 z-10 text-white font-bold p-1 bg-red-400 rounded-full transition-all opacity-0 group-hover:opacity-100">
+                            <XMarkIcon class="w-9 h-9" />
+                        </button>
 
-                        <div v-else class="grid place-content-center bg-blue-100 aspect-square">
-                            <p class="text-xl text-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor" class="size-9">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                                </svg>
-                                <small>
-                                    {{ attachment.name }}
+                        <!-- <div v-if="ind == 2 && postAttachments.length > 3"
+                            class="absolute inset-0 z-10 bg-black opacity-60 text-center flex justify-center items-center text-white text-xl font-bold">
+                            <div class="text-white">
+                                And {{ postAttachments.length - 3 }} Files More.
+                            </div>
+                        </div> -->
+
+                        <img v-if="isImage(attachment.file || attachment)" :src="attachment.src || attachment.url"
+                            class="object-cover h-full w-full" loading="lazy" />
+
+                        <div v-else
+                            class="grid flex-col-reverse p-2 place-content-center bg-blue-100 aspect-square border-2 border-dashed border-blue-300 hover:bg-blue-200 cursor-pointer">
+                            <div class="flex p-2 flex-col items-center text-center">
+                                <PaperClipIcon class="w-12 h-12 text-blue-600" />
+                                <small v-if="attachment?.file"
+                                    class="max-w-[90%]  break-words text-center text-blue-900">
+                                    {{ attachment.file.name || attachment.filename }}
                                 </small>
-                            </p>
+                            </div>
                         </div>
                     </div>
                 </div>
+                <div class="mt-2 px-3 w-100">
+                    <button type="button"
+                        class="inline-flex relative gap-3 justify-center align-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+                        <PaperClipIcon class="w-4 h-4" />
+                        Attach files
+                        <input type="file" multiple @change="onFileChosen"
+                            class="absolute z-30 top-0 left-0 bottom-0 right-0 opacity-0">
+                    </button>
+                </div>
                 <div class="mt-2 px-3 flex justify-between">
-                    <PrimaryButton @click="onSubmit">{{ post.id ? 'Update' : 'Create'}} </PrimaryButton>
+                    <PrimaryButton @click="onSubmit">{{ post.id ? 'Update' : 'Create' }} </PrimaryButton>
                     <button type="button"
                         class="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                        @click="show = false">
+                        @click="closeModal">
                         Cancel
                     </button>
                 </div>

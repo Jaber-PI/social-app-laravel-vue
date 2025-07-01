@@ -12,7 +12,7 @@ class UpdatePostRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $post = Post::where('id',$this->input('id'))->where('created_by',$this->user()->id)->first();
+        $post = Post::where('id', $this->input('id'))->where('created_by', $this->user()->id)->first();
         return !!$post;
     }
 
@@ -24,7 +24,24 @@ class UpdatePostRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'body' => ['string','nullable','max:255'],
+            'body' => ['string', 'nullable', 'max:255'],
+            'attachments' => [ 'array','max:10'], // Must be an array of files
+            'attachments.*' => [
+                'file',                             // Each item must be a file
+                'mimes:jpg,jpeg,png,pdf,doc,docx.mp3,mp4',  // Allowed file types
+                'max:2048',                         //
+            ],
+            'deleted_attachments' => ['nullable', 'array'],
+            'deleted_attachments.*' => ['integer', 'exists:post_attachments,id'],
         ];
+    }
+
+     protected function prepareForValidation()
+    {
+        $this->merge([
+            'body' => $this->input('body') ?: '',
+            'attachments' => $this->input('attachments', []),
+            'deleted_attachments' => $this->input('deleted_attachments', []),
+        ]);
     }
 }
