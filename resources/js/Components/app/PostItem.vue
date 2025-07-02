@@ -20,7 +20,9 @@ const toggleReadMore = () => {
 }
 
 
-const emit = defineEmits(['editClick']);
+const emit = defineEmits(['editClick', 'previewAttachment']);
+
+
 const editClick = () => {
     emit('editClick', props.post);
 }
@@ -36,11 +38,14 @@ function deletePost() {
 function downloadFile(id) {
     window.open(route('attachments.download', id), '_blank');
 }
+
+function previewAttachment(ind) {
+    emit('previewAttachment', props.post.attachments, ind)
+}
 </script>
 
 <template>
     <div class="flex relative flex-col bg-white p-2 rounded-2xl shadow-sm">
-
 
         <!-- dropdown menu  -->
         <Menu as="div" class="absolute top-4 right-4 inline-block text-left z-20">
@@ -118,7 +123,7 @@ function downloadFile(id) {
         <div v-if="post.attachments"
             class="relative w-full rounded-t-2xl grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-1">
             <div v-for="(attachment, ind) of post.attachments.slice(0, 4)" :key="attachment.id"
-                class="group overflow-hidden relative aspect-square">
+                @click="previewAttachment(ind)" class="group overflow-hidden relative aspect-square">
                 <!-- download button  -->
                 <button @click="downloadFile(attachment.id)"
                     class=" absolute right-1 cursor-pointer bottom-1 z-10 text-white p-1 bg-blue-400 rounded-full transition-all opacity-0 group-hover:opacity-100">
