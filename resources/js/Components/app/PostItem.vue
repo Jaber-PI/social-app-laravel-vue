@@ -48,7 +48,7 @@ function previewAttachment(ind) {
     <div class="flex relative flex-col bg-white p-2 rounded-2xl shadow-sm">
 
         <!-- dropdown menu  -->
-        <Menu as="div" class="absolute top-4 right-4 inline-block text-left z-20">
+        <Menu as="div" class="absolute top-4 right-4 inline-block text-left z-10">
             <div>
                 <MenuButton
                     class="inline-flex w-full justify-center rounded-md  px-4 py-2 text-sm font-medium text-black  focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75">
@@ -64,7 +64,7 @@ function previewAttachment(ind) {
                     class="absolute right-0  w-40 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
                     <div class="px-1 py-1">
                         <MenuItem>
-                        <button class='group flex w-full items-center rounded-md px-1 py-1 text-xs' @click="editClick">
+                        <button class='group cursor-pointer flex w-full items-center rounded-md px-1 py-1 text-xs' @click="editClick">
                             Edit
                         </button>
                         </MenuItem>

@@ -33,11 +33,12 @@ const openEditModal = (post) => {
 
 <template>
 
-    <EditorModal v-if="openEditModal" :post="editPost" v-model="showEditModal" />
+    <EditorModal v-if="showEditModal" :post="editPost" v-model="showEditModal" />
+
     <AttachmentPreviewModal v-model="showPreviewModal" :attachmentIndex="attachmentIndex"
         :attachments="attachments" />
 
     <div class="posts flex flex-col gap-2 px-1">
-        <PostItem v-for="post in posts" @previewAttachment="openPreviewModal" @editClick="showEditModal" :key="post.id" :post="post" />
+        <PostItem v-for="post in posts" @previewAttachment="openPreviewModal" @editClick="openEditModal" :key="post.id" :post="post" />
     </div>
 </template>

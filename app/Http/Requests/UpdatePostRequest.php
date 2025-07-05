@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use App\Models\Post;
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdatePostRequest extends FormRequest
+class UpdatePostRequest extends StorePostRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,20 +23,13 @@ class UpdatePostRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'body' => ['string', 'nullable', 'max:255'],
-            'attachments' => [ 'array','max:10'], // Must be an array of files
-            'attachments.*' => [
-                'file',                             // Each item must be a file
-                'mimes:jpg,jpeg,png,pdf,doc,docx.mp3,mp4',  // Allowed file types
-                'max:2048',                         //
-            ],
+        return array_merge(parent::rules(), [
             'deleted_attachments' => ['nullable', 'array'],
             'deleted_attachments.*' => ['integer', 'exists:post_attachments,id'],
-        ];
+        ]);
     }
 
-     protected function prepareForValidation()
+    protected function prepareForValidation()
     {
         $this->merge([
             'body' => $this->input('body') ?: '',
