@@ -53,4 +53,14 @@ class Post extends Model
         }
         return $allFilesPaths ?? 0;
     }
+
+    public function reactions()
+    {
+        return $this->hasMany(PostReaction::class);
+    }
+
+    public function isReactedBy(User $user): bool
+    {
+        return $this->reactions()->where('user_id', $user->id)->exists();
+    }
 }

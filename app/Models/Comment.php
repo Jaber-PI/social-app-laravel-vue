@@ -8,9 +8,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Comment extends Model
 {
 
-    public function author(): BelongsTo
+    protected $fillable = ['post_id', 'user_id', 'body'];
+
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class);
     }
 
     public function post(): BelongsTo

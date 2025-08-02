@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class CommentResource extends JsonResource
 {
@@ -17,9 +18,17 @@ class CommentResource extends JsonResource
         return [
             'id' => $this->id,
             'body' => $this->body,
-            'created_at' => $this->created_at->toDateTimeString(),
-            'author' => new UserResource($this->whenLoaded('author')),
-            // Add other fields as needed
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+            'user' => [
+                'id' => $this->user->id,
+                'name' => $this->user->name,
+                'avatar_url' => $this->user->avatar_path ? Storage::url($this->user->avatar_path) : '/images/monir.jpeg',
+            ],
+            'can' => [
+                'delete' => $request->user()?->can('delete', $this->resource),
+                'update' => $request->user()?->can('update', $this->resource),
+            ],
         ];
     }
 }

@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\PostReactionController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -23,6 +25,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/{post}', 'destroy')->name('delete');
 
     });
+
+    Route::post('/posts/{post}/reaction', [PostReactionController::class, 'react']);
+
+
+    Route::get('/posts/{post}/comments', [CommentController::class, 'index']);
+    Route::post('/posts/{post}/comments', [CommentController::class, 'store']);
+    Route::post('/posts/{post}/comments', [CommentController::class, 'store']);
+
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])
+        ->name('comments.delete')
+        ->middleware('can:delete,comment');
+
+    Route::put('/comments/{comment}', [CommentController::class, 'update'])
+        ->name('comments.update')
+        ->middleware('can:update,comment');
+
 
     Route::get('/attachments/{attachment}/download', [PostController::class, 'downloadAttachment'])
     ->name('attachments.download');

@@ -88,7 +88,7 @@ const posts2 = [
 <template>
     <Head title="Home" />
     <AuthenticatedLayout>
-        <div class="container mx-auto h-full py-1">
+        <div class="container pt-16 mx-auto h-full py-1">
             <div class=" px-3 py-4 h-full">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 h-full  overflow-auto">
                     <!-- Left Sidebar -->

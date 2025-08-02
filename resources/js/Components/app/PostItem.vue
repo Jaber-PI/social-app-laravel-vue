@@ -4,21 +4,24 @@ import { ChatBubbleOvalLeftEllipsisIcon, HandThumbUpIcon, ShareIcon } from "@her
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 import { ChevronDownIcon } from '@heroicons/vue/20/solid'
 
-import { ref } from "vue";
+
+import { computed, ref } from "vue";
 import { router } from "@inertiajs/vue3";
 
 import { isImage } from "@/helpers";
+import axiosClient from "@/lib/axiosClient";
+import PostComments from "./PostComments.vue";
 
 const props = defineProps({
     post: Object
 })
 
 const readMore = ref(false);
+const showCommentForm = ref(false)
 
 const toggleReadMore = () => {
     readMore.value = !readMore.value;
 }
-
 
 const emit = defineEmits(['editClick', 'previewAttachment']);
 
@@ -42,6 +45,20 @@ function downloadFile(id) {
 function previewAttachment(ind) {
     emit('previewAttachment', props.post.attachments, ind)
 }
+
+
+const reacted = ref(props.post.reacted_by_user)
+const reactionsCount = ref(props.post.reactions_count)
+
+const react = async () => {
+    try {
+        const response = await axiosClient.post(`/posts/${props.post.id}/reaction`)
+        reacted.value = response.data.reacted
+        reactionsCount.value = response.data.reactions_count
+    } catch (error) {
+        console.error('Error toggling like', error)
+    }
+}
 </script>
 
 <template>
@@ -64,7 +81,8 @@ function previewAttachment(ind) {
                     class="absolute right-0  w-40 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
                     <div class="px-1 py-1">
                         <MenuItem>
-                        <button class='group cursor-pointer flex w-full items-center rounded-md px-1 py-1 text-xs' @click="editClick">
+                        <button class='group cursor-pointer flex w-full items-center rounded-md px-1 py-1 text-xs'
+                            @click="editClick">
                             Edit
                         </button>
                         </MenuItem>
@@ -161,13 +179,19 @@ function previewAttachment(ind) {
 
         <!-- Post Footer -->
         <div class="flex justify-evenly items-center rounded-b-2xl  shadow-md text-gray-400  border-t">
-            <button
+            <button @click="react" :class="[
+                'px-3 py-1 rounded-full flex items-center gap-1 text-sm font-medium transition-all',
+                reacted
+                    ? 'text-gray-800'
+                    : ''
+            ]"
                 class="inputIcon flex justify-center items-center px-5 py-3 rounded-none rounded-bl-2xl hover:text-gray-800 cursor-pointer">
                 <HandThumbUpIcon class="h-5" />
-                <p class="ms-4 text-xs sm:text-base">Like</p>
+                <p class="ms-4 text-xs sm:text-base">Like <span>{{ reactionsCount ? '(' + reactionsCount + ')' : ""
+                }}</span></p>
             </button>
 
-            <button
+            <button @click="showCommentForm = !showCommentForm"
                 class="inputIcon flex justify-center items-center px-5 py-3 rounded-none rounded-bl-2xl hover:text-gray-800 cursor-pointer">
                 <ChatBubbleOvalLeftEllipsisIcon class="h-5" />
                 <p class="ms-4  text-xs sm:text-base">Comment</p>
@@ -179,5 +203,10 @@ function previewAttachment(ind) {
                 <p class="ms-4  text-xs sm:text-base">Share</p>
             </button>
         </div>
+
+        <div v-show="showCommentForm" class="px-2">
+            <PostComments :post-id="post.id" :comments-count="post.comments_count" />
+        </div>
+
     </div>
 </template>
