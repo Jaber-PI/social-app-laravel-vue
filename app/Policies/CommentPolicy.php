@@ -41,6 +41,11 @@ class CommentPolicy
         return true;
     }
 
+    public function react(User $user, Comment $comment)
+    {
+        return true;
+    }
+
     /**
      * Determine whether the user can create models.
      */

@@ -3,7 +3,6 @@
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PostController;
-use App\Http\Controllers\PostReactionController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -23,15 +22,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('', 'store')->name('store');
         Route::put('/{post}', 'update')->name('update');
         Route::delete('/{post}', 'destroy')->name('delete');
-
     });
 
-    Route::post('/posts/{post}/reaction', [PostReactionController::class, 'react']);
+    Route::post('/posts/{post}/reaction', [PostController::class, 'react']);
 
+    // Route::get('/posts/{post}/comments', [CommentController::class, 'index'])->name('comments.index');
 
-    Route::get('/posts/{post}/comments', [CommentController::class, 'index']);
-    Route::post('/posts/{post}/comments', [CommentController::class, 'store']);
-    Route::post('/posts/{post}/comments', [CommentController::class, 'store']);
+    Route::get('/comments', [CommentController::class, 'index'])->name('comments.index');
+
+    Route::post('/comments', [CommentController::class, 'store'])->name('comments.store')
+        ->middleware('can:create,App\Models\Comment');
+
 
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])
         ->name('comments.delete')
@@ -41,9 +42,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('comments.update')
         ->middleware('can:update,comment');
 
+    Route::post('/comments/{comment}/reaction', [CommentController::class, 'react'])
+        ->name('comments.react');
+
 
     Route::get('/attachments/{attachment}/download', [PostController::class, 'downloadAttachment'])
-    ->name('attachments.download');
+        ->name('attachments.download');
 
     Route::prefix('/profile')->controller(ProfileController::class)->name('profile.')->group(function () {
         Route::get('', 'edit')->name('edit');

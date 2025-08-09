@@ -10,6 +10,8 @@ import { router } from "@inertiajs/vue3";
 
 import { isImage } from "@/helpers";
 import axiosClient from "@/lib/axiosClient";
+
+
 import PostComments from "./PostComments.vue";
 
 const props = defineProps({

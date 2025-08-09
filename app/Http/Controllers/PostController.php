@@ -6,10 +6,11 @@ use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use App\Models\Post;
 use App\Models\PostAttachment;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Services\ReactionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 
@@ -51,21 +52,6 @@ class PostController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Post $post)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Post $post)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.
@@ -108,6 +94,13 @@ class PostController extends Controller
         $post->delete();
     }
 
+
+    public function react(Request $request, Post $post, ReactionService $reactionService)
+    {
+        // Gate::authorize('react', $post);
+        $result = $reactionService->toggleReaction($post, $request->user());
+        return response()->json($result);
+    }
 
     public function downloadAttachment(PostAttachment $attachment)
     {

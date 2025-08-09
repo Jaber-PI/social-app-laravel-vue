@@ -20,12 +20,12 @@ class PostResource extends JsonResource
             'body' => $this->body ?: '',
             'created_at' => $this->created_at->toDateTimeString(),
             'updated_at' => $this->updated_at->toDateTimeString(),
-            'reacted_by_user' => auth()->check() ? $this->reactions->isNotEmpty() : false,
+            'reacted_by_user' => $this->relationLoaded('reactedByAuthUser') && $this->reactedByAuthUser !== null,
             'reactions_count' => $this->whenCounted('reactions'),
             'comments_count' => $this->whenCounted('comments'),
+            'comments' => CommentResource::collection($this->whenLoaded('comments')),
             'author' => new UserResource($this->whenLoaded('author')),
             'group' => new GroupResource($this->whenLoaded('group')),
-            'comments' => CommentResource::collection($this->whenLoaded('comments')),
             'attachments' => PostAttachmentResource::collection($this->whenLoaded('attachments')),
 
         ];

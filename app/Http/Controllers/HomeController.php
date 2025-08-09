@@ -14,10 +14,8 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $posts = Post::with('author', 'attachments')->withCount('reactions','comments')
-            ->with(['reactions' => function ($query) {
-                $query->where('user_id', Auth::id());
-            }])->latest()->get();
+        $posts = Post::with('author', 'attachments', 'reactedByAuthUser')->withCount('reactions', 'comments')
+            ->latest()->get();
 
         return Inertia::render('Home', [
             'posts' => PostResource::collection($posts),

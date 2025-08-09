@@ -2,34 +2,67 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ReactionType;
 use App\Http\Resources\CommentResource;
 use App\Models\Comment;
 use App\Models\Post;
+use App\Services\ReactionService;
 use Illuminate\Http\Request;
 
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rules\Enum;
 
 class CommentController extends Controller
 {
     use AuthorizesRequests;
 
-    public function index(Post $post)
-    {
-        return response()->json(CommentResource::collection($post->comments()->with('user:id,name')->get()));
-    }
-
-    public function store(Request $request, Post $post)
+    public function index(Request $request)
     {
         $request->validate([
-            'body' => 'required|string|max:1000',
+            'commentable_type' => 'required|string',
+            'commentable_id' => 'required|integer',
         ]);
-        $comment = $post->comments()->create([
+
+        $modelClass = $request->commentable_type;
+
+        abort_unless(class_exists($modelClass), 404);
+
+        $commentable = $modelClass::findOrFail($request->commentable_id);
+
+        // Eager load replies + user
+        $comments = $commentable->comments()
+            ->with(['user:id,name', 'reactedByAuthUser'])
+            ->withCount(['reactions', 'comments'])
+            ->latest()
+            ->get();
+
+        return response()->json(CommentResource::collection($comments));
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'commentable_type' => 'required|string',
+            'commentable_id' => 'required|integer',
+            'body' => 'required|string|max:5000',
+        ]);
+
+        $modelClass = $request->commentable_type;
+
+        abort_unless(class_exists($modelClass), 404);
+
+        $commentable = $modelClass::findOrFail($request->commentable_id);
+
+        $comment = $commentable->comments()->create([
             'body' => $request->body,
-            'user_id' => $request->user()->id,
+            'user_id' => $request->user()->id
         ]);
 
         return response()->json(new CommentResource($comment->load('user:id,name')));
     }
+
+
 
     public function update(Request $request, Comment $comment)
     {
@@ -56,5 +89,15 @@ class CommentController extends Controller
         $comment->delete();
 
         return response()->json(['message' => 'Comment deleted.']);
+    }
+
+
+    public function react(Request $request, Comment $comment, ReactionService $reactionService)
+    {
+
+        Gate::authorize('react', $comment);
+
+        $result = $reactionService->toggleReaction($comment, $request->user());
+        return response()->json($result);
     }
 }

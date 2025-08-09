@@ -5,7 +5,7 @@ namespace App\Models;
 use App\Enums\ReactionType;
 use Illuminate\Database\Eloquent\Model;
 
-class PostReaction extends Model
+class Reaction extends Model
 {
     protected $fillable = ['user_id', 'post_id', 'reaction_type'];
 
@@ -19,8 +19,8 @@ class PostReaction extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function post()
+    public function reactable()
     {
-        return $this->belongsTo(Post::class);
+        return $this->morphTo();
     }
 }

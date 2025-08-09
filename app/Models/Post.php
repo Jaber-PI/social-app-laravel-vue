@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasReactions;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +13,8 @@ class Post extends Model
     //
     use HasFactory;
     use SoftDeletes;
+
+    use HasReactions;
 
 
     protected $guarded = [];
@@ -28,7 +31,7 @@ class Post extends Model
 
     public function comments()
     {
-        return $this->hasMany(Comment::class);
+        return $this->morphMany(Comment::class, 'commentable');
     }
 
 
@@ -54,13 +57,5 @@ class Post extends Model
         return $allFilesPaths ?? 0;
     }
 
-    public function reactions()
-    {
-        return $this->hasMany(PostReaction::class);
-    }
 
-    public function isReactedBy(User $user): bool
-    {
-        return $this->reactions()->where('user_id', $user->id)->exists();
-    }
 }

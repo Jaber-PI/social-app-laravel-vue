@@ -20,6 +20,13 @@ class CommentResource extends JsonResource
             'body' => $this->body,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+
+            'reacted_by_user' => $this->relationLoaded('reactedByAuthUser') && $this->reactedByAuthUser !== null,
+            'reactions_count' => $this->whenCounted('reactions'),
+
+            'comments_count' => $this->whenCounted('comments'),
+            'comments' => CommentResource::collection($this->whenLoaded('comments')),
+
             'user' => [
                 'id' => $this->user->id,
                 'name' => $this->user->name,
