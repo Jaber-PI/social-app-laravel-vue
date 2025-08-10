@@ -58,4 +58,14 @@ class Post extends Model
     }
 
 
+    protected static function booted()
+    {
+        static::deleting(function ($post) {
+            $post->reactions()->delete();
+
+            foreach ($post->comments as $comment) {
+                $comment->delete(); // triggers deleting() on comment as well
+            }
+        });
+    }
 }

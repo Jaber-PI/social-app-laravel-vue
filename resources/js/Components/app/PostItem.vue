@@ -48,7 +48,6 @@ function previewAttachment(ind) {
     emit('previewAttachment', props.post.attachments, ind)
 }
 
-
 const reacted = ref(props.post.reacted_by_user)
 const reactionsCount = ref(props.post.reactions_count)
 
@@ -143,10 +142,12 @@ const react = async () => {
         <div v-if="post.attachments"
             class="relative w-full rounded-t-2xl grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-1">
             <div v-for="(attachment, ind) of post.attachments.slice(0, 4)" :key="attachment.id"
-                @click="previewAttachment(ind)" class="group overflow-hidden relative aspect-square">
+                @click="previewAttachment(ind)"
+                class="group overflow-hidden hover:b cursor-pointer relative aspect-square">
+
                 <!-- download button  -->
                 <button @click="downloadFile(attachment.id)"
-                    class=" absolute right-1 cursor-pointer bottom-1 z-10 text-white p-1 bg-blue-400 rounded-full transition-all opacity-0 group-hover:opacity-100">
+                    class=" absolute right-1 cursor-pointer bottom-1 z-10 text-white p-2 bg-blue-400 rounded-full transition-all opacity-0 group-hover:opacity-100">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-4">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -154,16 +155,19 @@ const react = async () => {
                     </svg>
                 </button>
 
+                <!-- attachment more if length > 4  -->
                 <div v-if="ind == 3 && post.attachments.length > 4"
                     class="absolute inset-0 z-10 bg-black opacity-60 text-center flex justify-center items-center text-xl text-white font-bold">
                     <div class="text-white">
                         And {{ post.attachments.length - 3 }} Files More.
                     </div>
                 </div>
-
-                <img v-if="isImage(attachment)" :src="attachment.url" class="object-cover h-full w-full"
+                <!-- if attachment is image -->
+                <img v-if="isImage(attachment)" :src="attachment.url"
+                    class="object-cover h-full w-full transition-transform duration-300 hover:scale-105 rounded-md"
                     loading="lazy" />
 
+                <!-- if attachment is a file  -->
                 <div v-else class="grid place-content-center bg-blue-100 aspect-square">
                     <p class="text-xl text-center">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -176,11 +180,16 @@ const react = async () => {
                         </small>
                     </p>
                 </div>
+
+                <!-- opacity overlay on hover  -->
+                <a href="#"
+                    class="absolute inset-0 bg-black opacity-0 hover:opacity-30 transition-opacity duration-300 rounded-md"></a>
             </div>
         </div>
 
         <!-- Post Footer -->
         <div class="flex justify-evenly items-center rounded-b-2xl  shadow-md text-gray-400  border-t">
+            <!-- like and react button  -->
             <button @click="react" :class="[
                 'px-3 py-1 rounded-full flex items-center gap-1 text-sm font-medium transition-all',
                 reacted
@@ -190,15 +199,16 @@ const react = async () => {
                 class="inputIcon flex justify-center items-center px-5 py-3 rounded-none rounded-bl-2xl hover:text-gray-800 cursor-pointer">
                 <HandThumbUpIcon class="h-5" />
                 <p class="ms-4 text-xs sm:text-base">Like <span>{{ reactionsCount ? '(' + reactionsCount + ')' : ""
-                }}</span></p>
+                        }}</span></p>
             </button>
-
+            <!-- commenting button  -->
             <button @click="showCommentForm = !showCommentForm"
                 class="inputIcon flex justify-center items-center px-5 py-3 rounded-none rounded-bl-2xl hover:text-gray-800 cursor-pointer">
                 <ChatBubbleOvalLeftEllipsisIcon class="h-5" />
                 <p class="ms-4  text-xs sm:text-base">Comment</p>
             </button>
 
+            <!-- share button  -->
             <button
                 class="inputIcon flex justify-center items-center px-5 py-3 rounded-none rounded-bl-2xl hover:text-gray-800 cursor-pointer">
                 <ShareIcon class="h-5" />
@@ -206,6 +216,7 @@ const react = async () => {
             </button>
         </div>
 
+        <!-- comments list  -->
         <div v-show="showCommentForm" class="px-2">
             <PostComments :post-id="post.id" :comments-count="post.comments_count" />
         </div>

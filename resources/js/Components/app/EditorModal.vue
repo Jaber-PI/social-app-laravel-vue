@@ -58,7 +58,7 @@ const onSubmit = () => {
 
     if (form.id) {
         form._method = 'PUT'
-        form.post(route('post.update', props.post), {
+        form.post(route('posts.update', props.post), {
             preserveScroll: true,
             onSuccess: () => {
                 form.reset();
@@ -75,7 +75,7 @@ const onSubmit = () => {
             }
         })
     } else {
-        form.post(route('post.store'), {
+        form.post(route('posts.store'), {
             preserveScroll: true,
             onSuccess: () => {
                 form.reset();
@@ -93,7 +93,7 @@ const onSubmit = () => {
         });
         // emit('update:modelValue', false);
     }
-    // closeModal();
+    closeModal();
     return;
 };
 

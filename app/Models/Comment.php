@@ -30,4 +30,22 @@ class Comment extends Model
     {
         return $this->morphMany(Comment::class, 'commentable');
     }
+
+    public function reactions(): MorphMany
+    {
+        return $this->morphMany(Reaction::class, 'reactable');
+    }
+
+    protected static function booted()
+    {
+        static::deleting(function ($comment) {
+            // Delete all reactions for this comment
+            $comment->reactions()->delete();
+
+            // Recursively delete replies and their reactions
+            foreach ($comment->comments as $reply) {
+                $reply->delete(); // triggers deleting() on reply as well
+            }
+        });
+    }
 }

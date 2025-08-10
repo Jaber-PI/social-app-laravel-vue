@@ -1,13 +1,11 @@
 <script setup>
 import ModalHeadless from '../ModalHeadless.vue';
 
-// import TextareaInput from "../TextareaInput.vue";
 import { computed, ref } from 'vue';
-
 import { PaperClipIcon, XMarkIcon } from '@heroicons/vue/24/solid';
-import { isImage } from '@/helpers';
 
-const model = defineModel();
+import { isImage } from '@/helpers';
+import { onMounted } from 'vue';
 
 const props = defineProps({
     attachmentIndex: {
@@ -40,16 +38,18 @@ function nextAttachment() {
     selectedAttachmentIndex.value++;
 }
 
+const emit = defineEmits(['closed'])
+
 function closeModal() {
-    model.value = false;
+    emit('closed');
 }
 
 </script>
 
 <template>
     <teleport to="body">
-        <ModalHeadless :isOpen="model">
-            <div class="w-full relative">
+        <ModalHeadless :isOpen="true" @close="closeModal">
+            <div class="w-full relative ">
                 <button @click="closeModal"
                     class="absolute top-2 z-10 right-2 px-4 py-2 bg-gray-700 text-white rounded">
                     <XMarkIcon class="w-8" />

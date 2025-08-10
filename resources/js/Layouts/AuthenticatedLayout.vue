@@ -19,7 +19,7 @@ const showingNavigationDropdown = ref(false);
 
 <template>
     <div>
-        <div class="h-screen relative bg-gray-100">
+        <div class="h-screen relative bg-gray-100 px-2">
             <nav class="border-b left-0 top-0 right-0 fixed border-gray-100 bg-white z-20"
                 :class="showingNavigationDropdown ? 'h-full' : ''">
                 <!-- Primary Navigation Menu -->
@@ -62,7 +62,7 @@ const showingNavigationDropdown = ref(false);
                                     </template>
 
                                     <template #content>
-                                        <DropdownLink :href="route('profile.show',user.username)">
+                                        <DropdownLink :href="route('profile.show', user.username)">
                                             Profile
                                         </DropdownLink>
                                         <DropdownLink :href="route('logout')" method="post" as="button">

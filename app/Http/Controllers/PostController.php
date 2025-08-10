@@ -4,14 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
+use App\Http\Resources\PostResource;
 use App\Models\Post;
 use App\Models\PostAttachment;
 use App\Services\ReactionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
@@ -21,7 +20,12 @@ class PostController extends Controller
      */
     public function index()
     {
-        //
+        $posts = Post::with('author', 'attachments', 'reactedByAuthUser')->withCount('reactions', 'comments')
+        ->latest()
+        ->cursorPaginate(5)
+        ->withQueryString();
+
+        return PostResource::collection($posts);
     }
 
 

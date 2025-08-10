@@ -67,27 +67,18 @@ class CommentController extends Controller
     public function update(Request $request, Comment $comment)
     {
         $this->authorize('update', $comment); // Checks if user can update
-
         $request->validate([
             'body' => 'required|string|max:1000',
         ]);
 
         $comment->update(['body' => $request->body]);
-
         return response()->json(new CommentResource($comment->load('user:id,name')));
     }
-
-    /**
-     * Delete a comment.
-     */
-
 
     public function destroy(Comment $comment)
     {
         $this->authorize('delete', $comment); // Checks if user can delete
-
         $comment->delete();
-
         return response()->json(['message' => 'Comment deleted.']);
     }
 
@@ -96,7 +87,6 @@ class CommentController extends Controller
     {
 
         Gate::authorize('react', $comment);
-
         $result = $reactionService->toggleReaction($comment, $request->user());
         return response()->json($result);
     }

@@ -18,7 +18,8 @@ Route::get('/dashboard', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
-    Route::prefix('/post')->controller(PostController::class)->name('post.')->group(function () {
+    Route::prefix('/posts')->controller(PostController::class)->name('posts.')->group(function () {
+        Route::get('', 'index')->name('index');
         Route::post('', 'store')->name('store');
         Route::put('/{post}', 'update')->name('update');
         Route::delete('/{post}', 'destroy')->name('delete');
