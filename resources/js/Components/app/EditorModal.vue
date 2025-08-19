@@ -10,6 +10,9 @@ import Editor from '../Editor.vue';
 import { isImage } from '@/helpers';
 import { PaperClipIcon, XMarkIcon } from '@heroicons/vue/24/solid';
 import InputError from '../InputError.vue';
+import TextareaInput from '../TextareaInput.vue';
+
+import axiosClient from '@/lib/axiosClient';
 
 const props = defineProps({
     post: {
@@ -24,10 +27,11 @@ const form = useForm({
     id: props.post.id,
     attachments: [],
     deleted_attachments: [],
-    _method: ''
+    _method: '',
+    group_id: props.post.group_id,
 })
 
-const emit = defineEmits('update:modelValue');
+const emit = defineEmits(['update:modelValue', 'postCreated', 'postUpdated']);
 
 const show = computed({
     get: () => props.modelValue,
@@ -60,8 +64,12 @@ const onSubmit = () => {
         form._method = 'PUT'
         form.post(route('posts.update', props.post), {
             preserveScroll: true,
-            onSuccess: () => {
+            onSuccess: async () => {
+                const response = await axiosClient.get(route('posts.show', form.id));
+                emit("postUpdated", response.data);
                 form.reset();
+                closeModal();
+
             },
             onError: (errors) => {
                 for (const key in errors) {
@@ -74,11 +82,16 @@ const onSubmit = () => {
                 }
             }
         })
+
     } else {
         form.post(route('posts.store'), {
             preserveScroll: true,
-            onSuccess: () => {
+            onSuccess: async (page) => {
                 form.reset();
+                const { data: post } = await axiosClient.get(route('posts.latest'));
+                emit("postCreated", post);
+                closeModal();
+
             },
             onError: (errors) => {
                 for (const key in errors) {
@@ -93,7 +106,6 @@ const onSubmit = () => {
         });
         // emit('update:modelValue', false);
     }
-    closeModal();
     return;
 };
 
@@ -124,8 +136,9 @@ function readFile(file) {
 }
 
 function closeModal() {
-    attachmentsErrors.value = []
-    postAttachments.value = [];
+    attachmentsErrors.value = [];
+    newAttachments.value = [];
+    oldAttachments.value = props.post.attachments || [];
     show.value = false;
 }
 </script>
@@ -133,79 +146,84 @@ function closeModal() {
 <template>
     <teleport to="body">
         <ModalHeadless :isOpen="show">
-            <div class="pt-6 z-40 ">
-                <!-- post header  -->
-                <div class="p-3 bg-white ">
-                    <div class="flex items-center space-x-2">
-                        <img class="rounded-full icon border-2 hover:border-blue-500 transition-all w-9 h-9"
-                            :src="post.author.avatar_url" />
-                        <div>
-                            <div class="flex">
-                                <p class="font-medium hover:underline cursor-pointer">{{ post.author.name }}
+            <div class="pt-6 z-40 bg-white p-4 container mx-auto rounded-lg ">
+                <div class="container">
+                    <!-- post header  -->
+                    <div class="p-3  ">
+                        <div class="flex items-center space-x-2">
+                            <img class="rounded-full icon border-2 hover:border-blue-500 transition-all w-9 h-9"
+                                :src="post.author.avatar_url" />
+                            <div>
+                                <div class="flex">
+                                    <p class="font-medium hover:underline cursor-pointer">{{ post.author.name }}
+                                    </p>
+                                    <template v-if="post.group">
+                                        <span class=" mx-2 font-medium"> > </span>
+                                        <p class="font-medium hover:underline cursor-pointer">
+                                            {{ post.group.name }}</p>
+                                    </template>
+                                </div>
+                                <p v-if="post.created_at" class="text-xs text-gray-400">
+                                    {{ new Date(post.created_at).toLocaleString() }}
                                 </p>
-                                <template v-if="post.group">
-                                    <span class=" mx-2 font-medium"> > </span>
-                                    <p class="font-medium hover:underline cursor-pointer">
-                                        {{ post.group.name }}</p>
-                                </template>
+                                <p v-else class="text-xs text-gray-400">Loading</p>
                             </div>
-                            <p v-if="post.created_at" class="text-xs text-gray-400">
-                                {{ new Date(post.created_at).toLocaleString() }}
-                            </p>
-                            <p v-else class="text-xs text-gray-400">Loading</p>
+                        </div>
+                        <div class="wrapper-description cursor-pointer">
+                            <div class="description-info">
+                                <!-- <Editor v-model="form.body" /> -->
+                                <TextareaInput v-model="form.body" class="w-full mt-3"
+                                    placeholder="write somthing..." />
+                            </div>
                         </div>
                     </div>
-                    <div class="wrapper-description cursor-pointer">
-                        <div class="description-info">
-                            <Editor v-model="form.body" />
-                        </div>
-                    </div>
-                </div>
 
-                <!-- attachments section  -->
-                <div v-if="postAttachments"
-                    class="px-3 w-full rounded-t-2xl grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-1">
-                    <div v-for="(attachment, ind) of postAttachments" :key="ind" :class="[
-                        attachmentsErrors[ind] ? 'border-2 p-1 pb-5 border-red-500' : ''
-                    ]" class="group h-full w-full max-h-64 aspect-square relative">
-                        <div class="relative max-h-full overflow-hidden">
-                            <!-- delete attachment icon  -->
-                            <button @click="removeAttachment(attachment)"
-                                class="absolute right-1 cursor-pointer top-1 z-10 text-white font-bold p-1 bg-red-400 rounded-full transition-all opacity-0 group-hover:opacity-100">
-                                <XMarkIcon class="w-9 h-9" />
-                            </button>
-                            <img v-if="isImage(attachment.file || attachment)" :src="attachment.src || attachment.url"
-                                class="object-cover mx-auto max-h-full" loading="lazy" />
-                            <div v-else
-                                class="p-2  bg-blue-100 aspect-square border-2 border-dashed border-blue-300 hover:bg-blue-200 cursor-pointer">
-                                <div class="flex p-2 flex-col items-center text-center">
-                                    <PaperClipIcon class="w-12 h-12 text-blue-600" />
-                                    <small class="max-w-[90%] break-words text-center text-blue-900">
-                                        {{ attachment?.file?.name || attachment.filename }}
-                                    </small>
+                    <!-- attachments section  -->
+                    <div v-if="postAttachments"
+                        class="px-3 w-full rounded-t-2xl grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-1">
+                        <div v-for="(attachment, ind) of postAttachments" :key="ind" :class="[
+                            attachmentsErrors[ind] ? 'border-2 p-1 pb-5 border-red-500' : ''
+                        ]" class="group h-full w-full max-h-64 aspect-square relative">
+                            <div class="relative max-h-full overflow-hidden">
+                                <!-- delete attachment icon  -->
+                                <button @click="removeAttachment(attachment)"
+                                    class="absolute right-1 cursor-pointer top-1 z-10 text-white font-bold p-1 bg-red-400 rounded-full transition-all opacity-0 group-hover:opacity-100">
+                                    <XMarkIcon class="w-9 h-9" />
+                                </button>
+                                <img v-if="isImage(attachment.file || attachment)"
+                                    :src="attachment.src || attachment.url" class="object-cover mx-auto max-h-full"
+                                    loading="lazy" />
+                                <div v-else
+                                    class="p-2  bg-blue-100 aspect-square border-2 border-dashed border-blue-300 hover:bg-blue-200 cursor-pointer">
+                                    <div class="flex p-2 flex-col items-center text-center">
+                                        <PaperClipIcon class="w-12 h-12 text-blue-600" />
+                                        <small class="max-w-[90%] break-words text-center text-blue-900">
+                                            {{ attachment?.file?.name || attachment.filename }}
+                                        </small>
+                                    </div>
                                 </div>
                             </div>
+                            <InputError :message="attachmentsErrors[ind] ?? ''" />
                         </div>
-                        <InputError :message="attachmentsErrors[ind] ?? ''" />
-                    </div>
 
-                </div>
-                <div class="mt-2 px-3 w-100">
-                    <button type="button"
-                        class="inline-flex relative gap-3 justify-center align-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
-                        <PaperClipIcon class="w-4 h-4" />
-                        Attach files
-                        <input type="file" multiple @change="onFileChosen"
-                            class="absolute z-30 top-0 left-0 bottom-0 right-0 opacity-0">
-                    </button>
-                </div>
-                <div class="mt-2 px-3 flex justify-between">
-                    <PrimaryButton @click="onSubmit">{{ post.id ? 'Update' : 'Create' }} </PrimaryButton>
-                    <button type="button"
-                        class="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                        @click="closeModal">
-                        Close
-                    </button>
+                    </div>
+                    <div class="mt-2 px-3 w-100">
+                        <button type="button"
+                            class="inline-flex relative gap-3 justify-center align-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+                            <PaperClipIcon class="w-4 h-4" />
+                            Attach files
+                            <input type="file" multiple accept="image/*,.pdf,.doc,.docx" @change="onFileChosen"
+                                class="absolute z-30 top-0 left-0 bottom-0 right-0 opacity-0">
+                        </button>
+                    </div>
+                    <div class="mt-2 px-3 flex justify-between">
+                        <PrimaryButton @click="onSubmit">{{ post.id ? 'Update' : 'Create' }} </PrimaryButton>
+                        <button type="button"
+                            class="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                            @click="closeModal">
+                            Close
+                        </button>
+                    </div>
                 </div>
             </div>
         </ModalHeadless>

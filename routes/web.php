@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\GroupController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
@@ -20,6 +21,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::prefix('/posts')->controller(PostController::class)->name('posts.')->group(function () {
         Route::get('', 'index')->name('index');
+        Route::get('/latest', 'latest')->name('latest');
+        Route::get('/{post}', 'show')->name('show');
         Route::post('', 'store')->name('store');
         Route::put('/{post}', 'update')->name('update');
         Route::delete('/{post}', 'destroy')->name('delete');
@@ -27,13 +30,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/posts/{post}/reaction', [PostController::class, 'react']);
 
-    // Route::get('/posts/{post}/comments', [CommentController::class, 'index'])->name('comments.index');
+    // group routes
+    Route::prefix('/groups')->controller(GroupController::class)->name('groups.')->group(function () {
+        Route::get('', 'index')->name('index');
+        Route::get('/{group:slug}', 'show')->name('show');
+        Route::post('', 'store')->name('store');
+        Route::put('/{group}', 'update')->name('update');
+        Route::delete('/{group}', 'destroy')->name('delete');
+        Route::post('/{group}/join', 'join')->name('join');
+        Route::post('/{group}/leave', 'leave')->name('leave');
 
+        Route::get('/{group}/posts', 'posts')->name('posts');
+
+    });
+
+    // comments routes
     Route::get('/comments', [CommentController::class, 'index'])->name('comments.index');
-
     Route::post('/comments', [CommentController::class, 'store'])->name('comments.store')
         ->middleware('can:create,App\Models\Comment');
-
 
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])
         ->name('comments.delete')

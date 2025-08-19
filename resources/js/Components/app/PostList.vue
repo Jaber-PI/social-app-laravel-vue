@@ -7,6 +7,18 @@ import AttachmentPreviewModal from './AttachmentPreviewModal.vue';
 import axiosClient from "@/lib/axiosClient";
 
 import { onMounted } from 'vue';
+import NewPost from './NewPost.vue';
+
+const props = defineProps({
+    groupId: {
+        type: Number,
+        required: false,
+    },
+    canCreate: {
+        type: Boolean,
+        required: true
+    }
+})
 
 const editPost = ref({});
 const showEditModal = ref(false);
@@ -29,6 +41,23 @@ const openEditModal = (post) => {
     return;
 }
 
+function updatePost(post) {
+
+    const index = posts.value.findIndex(p => p.id === post.id);
+    if (index !== -1) {
+        posts.value[index] = post;
+    }
+
+}
+
+function deletePost(postId) {
+    posts.value = posts.value.filter(post => post.id !== postId);
+}
+
+function addPost(post) {
+    posts.value.unshift(post);
+}
+
 const loading = ref(false);
 const noMorePosts = ref(false);
 const posts = ref([]);
@@ -39,8 +68,10 @@ const loadPosts = async () => {
     if (loading.value || noMorePosts.value) return
 
     loading.value = true
-    const url = route('posts.index', {
+    const url = props.groupId ? route('groups.posts', props.groupId, {
         cursor: cursor.value || null,
+    }) : route('posts.index', {
+        cursor: cursor.value || null
     })
 
     try {
@@ -73,14 +104,18 @@ onMounted(() => {
 
 <template>
 
-    <EditorModal v-if="showEditModal" :post="editPost" v-model="showEditModal" />
+    <div class="mb-3">
+        <NewPost v-if="canCreate" @postCreated="addPost" />
+    </div>
+
+    <EditorModal v-if="showEditModal" :post="editPost" v-model="showEditModal" @post-updated="updatePost" />
 
     <AttachmentPreviewModal v-if="showPreviewModal" :attachmentIndex="attachmentIndex" :attachments="attachments"
-    @closed="showPreviewModal = false" />
+        @closed="showPreviewModal = false" />
 
     <div class="posts flex flex-col gap-2 px-1">
         <PostItem v-for="post in posts" @previewAttachment="openPreviewModal" @editClick="openEditModal" :key="post.id"
-            :post="post" />
+            :post="post" @post-deleted="deletePost" />
     </div>
     <div v-if="loading" class="text-center py-4">Loading...</div>
     <div v-if="noMorePosts" class="text-center py-4">No more posts</div>

@@ -49,7 +49,7 @@ function closeModal() {
 <template>
     <teleport to="body">
         <ModalHeadless :isOpen="true" @close="closeModal">
-            <div class="w-full relative ">
+            <div class="w-full flex bg-white justify-center items-center relative ">
                 <button @click="closeModal"
                     class="absolute top-2 z-10 right-2 px-4 py-2 bg-gray-700 text-white rounded">
                     <XMarkIcon class="w-8" />
@@ -61,10 +61,10 @@ function closeModal() {
                     ‹
                 </button>
                 <!-- preview  -->
-                <div class="p-4 bg-white relative rounded-lg shadow w-full">
+                <div class="p-2 relative h-[80vh] rounded-lg shadow w-full">
                     <div v-if="selectedAttachment">
                         <img v-if="isImage(selectedAttachment)" :src="selectedAttachment.url" alt="Preview"
-                            class="max-h-[80vh] w-full mx-auto" />
+                            class="max-h-[70vh] max-w-full mx-auto" />
                         <div v-else class="text-center">
                             <PaperClipIcon class="w-9 mx-auto" />
                             <p class="mb-2">Cannot preview this file type.

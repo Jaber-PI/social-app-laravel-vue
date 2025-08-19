@@ -25,7 +25,7 @@ const toggleReadMore = () => {
     readMore.value = !readMore.value;
 }
 
-const emit = defineEmits(['editClick', 'previewAttachment']);
+const emit = defineEmits(['editClick', 'previewAttachment', "postDeleted"]);
 
 
 const editClick = () => {
@@ -35,8 +35,11 @@ const editClick = () => {
 
 function deletePost() {
     if (window.confirm("Are You sure to Delete this Post?")) {
-        router.delete(route('post.delete', props.post.id), {
-            preserveScroll: true
+        router.delete(route('posts.delete', props.post.id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                emit("postDeleted", props.post.id);
+            }
         });
     }
 }
@@ -143,7 +146,7 @@ const react = async () => {
             class="relative w-full rounded-t-2xl grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-1">
             <div v-for="(attachment, ind) of post.attachments.slice(0, 4)" :key="attachment.id"
                 @click="previewAttachment(ind)"
-                class="group overflow-hidden hover:b cursor-pointer relative aspect-square">
+                class="group overflow-hidden hover:b cursor-pointer relative ">
 
                 <!-- download button  -->
                 <button @click="downloadFile(attachment.id)"
@@ -164,7 +167,7 @@ const react = async () => {
                 </div>
                 <!-- if attachment is image -->
                 <img v-if="isImage(attachment)" :src="attachment.url"
-                    class="object-cover h-full w-full transition-transform duration-300 hover:scale-105 rounded-md"
+                    class="object-cover transition-transform duration-300 hover:scale-105 rounded-md"
                     loading="lazy" />
 
                 <!-- if attachment is a file  -->

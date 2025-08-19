@@ -15,19 +15,35 @@ use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index()
     {
         $posts = Post::with('author', 'attachments', 'reactedByAuthUser')->withCount('reactions', 'comments')
-        ->latest()
-        ->cursorPaginate(5)
-        ->withQueryString();
+            ->latest()
+            ->cursorPaginate(5)
+            ->withQueryString();
 
         return PostResource::collection($posts);
     }
 
+
+    public function show(Request $request, Post $post)
+    {
+        if ($request->wantsJson()) {
+            return response()->json(new PostResource($post->load('author', 'attachments', 'reactedByAuthUser')->loadCount('reactions', 'comments')));
+        }
+        return;
+    }
+
+    public function latest(Request $request)
+    {
+        if ($request->wantsJson()) {
+            return response()->json(new PostResource(Post::with('author', 'attachments', 'reactedByAuthUser')->withCount('reactions', 'comments')
+                ->latest()->first()));
+        }
+
+        return;
+    }
 
 
     /**
@@ -45,6 +61,15 @@ class PostController extends Controller
             $post = Auth::user()->posts()->create($data);
             $allFilesPaths = $post->addAttachments($attachments);
             DB::commit();
+
+            // if ($request->wantsJson()) {
+            //     return response()->json(new PostResource($post->load('u', 'attachments')));
+            // }
+
+            if ($request->wantsJson()) {
+                return response()->json($post->load('author', 'attachments'));
+            }
+
             return redirect()->back()->with('success', 'post created');
         } catch (\Exception $e) {
             DB::rollBack();
