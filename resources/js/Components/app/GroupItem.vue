@@ -1,5 +1,6 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
+import { capitalize } from 'vue';
 
 
 defineProps({
@@ -16,13 +17,14 @@ defineProps({
         </div>
         <div class="p-2 flex-1">
             <Link :href="route('groups.show', group.slug)" class="text-gray-800 hover:text-blue-600">
-                <div class="font-bold text-l sm:text-xl">
-                    {{ group.name }}
-                </div>
-            </Link>
-            <div class="text-xs sm:text-xm">
-                {{ group.description }}
+            <div class="font-bold text-l sm:text-xl">
+                {{ group.name }}
             </div>
+            <div class="text-xs sm:text-sm">
+                <span class="font-bold">Status:</span> {{ group.user_status == 'approved' ? capitalize(group.user_role) : 'Pending' }}
+            </div>
+            </Link>
+
         </div>
     </div>
 </template>

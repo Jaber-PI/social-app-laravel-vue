@@ -24,12 +24,20 @@ class GroupResource extends JsonResource
             'updated_at' => $this->updated_at,
             'members' => UserResource::collection($this->whenLoaded('members')),
             'creator' => new UserResource($this->whenLoaded('creator')),
-            'posts' => PostResource::collection($this->whenLoaded('posts')),
-            'is_member' => $this->when(Auth::check(), function () {
-                // Case 1: is_member was loaded via withExists / withCount
-                if ($this->relationLoaded('is_member') || isset($this->is_member)) {
-                    return (bool) $this->is_member;
-                }
+            'cover_path' => $this->cover_path,
+            'avatar_path' => $this->avatar_path,
+
+            'user_role' => $this->user_role ?? $this->pivot?->role,
+            'user_status' => $this->user_status ?? $this->pivot?->status,
+            'user_approved_at' => $this->user_approved_at ?? $this->pivot?->approved_at,
+
+            'is_member' => $this->when(
+                Auth::check(),
+                function () {
+                    // Case 1: is_member was loaded via withExists / withCount
+                    if ($this->relationLoaded('is_member') || isset($this->is_member)) {
+                        return (bool) $this->is_member;
+                    }
 
                     // Case 2: members were eager-loaded (like in show)
                     if ($this->relationLoaded('members')) {

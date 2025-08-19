@@ -17,9 +17,10 @@ class HomeController extends Controller
      */
     public function index(Request $request)
     {
-        $groups = Group::with('creator')->latest()->withExists(['members as is_member' => function ($q) use ($request) {
-            $q->whereKey($request->user()->id);
-        }])->take(5)->get();
+        $groups = $request->user()->groups()
+        ->orderByPivot('role')
+        ->latest()
+        ->get();
 
         return Inertia::render('Home', [
             'groups' => GroupResource::collection($groups)

@@ -50,6 +50,8 @@ class GroupController extends Controller
             ? $request->file('thumbnail')->store('groups/thumbnails', 'public')
             : null;
 
+
+
         $group = Group::create([
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
@@ -66,6 +68,10 @@ class GroupController extends Controller
             'status' => 'approved',
             'added_by' => $request->user()->id,
         ]);
+
+        $group->user_role = 'admin';
+        $group->user_status = 'approved';
+        $group->user_approved_at = now();
 
         return response()->json(new GroupResource($group), 201);
         // return redirect()->route('groups.show', $group);
