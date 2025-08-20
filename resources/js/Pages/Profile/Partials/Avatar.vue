@@ -34,8 +34,8 @@
 
 
 <script>
-import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { CheckCircleIcon, CheckIcon, XMarkIcon } from '@heroicons/vue/20/solid';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
 
 import { PhotoIcon } from '@heroicons/vue/20/solid';
 

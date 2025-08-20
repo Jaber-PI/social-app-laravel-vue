@@ -2,15 +2,14 @@
 
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { PhotoIcon } from '@heroicons/vue/20/solid';
-
-import { useForm } from '@inertiajs/vue3';
-import { defineProps } from 'vue';
+import axiosClient from '@/lib/axiosClient.js';
 
 import { ref } from 'vue';
 
 const props = defineProps({
     groupId: Number,
-    cover_path: String
+    cover_path: String,
+    canUpdate: Boolean
 })
 
 const default_cover = '/storage/groups/covers/default_cover.jpg';
@@ -20,7 +19,7 @@ const coverIsChanging = ref(false);
 const selectedImage = ref(null);
 
 
-const form = useForm({
+const form = ref({
     cover: null
 })
 
@@ -59,20 +58,16 @@ const onCoverSave = async () => {
         return;
     }
 
-    form.cover = selectedImage.value;
+    const formData = new FormData();
+    formData.append('cover', selectedImage.value);
 
-    try {
-        form.post(route('groups.image.store', props.groupId), {
-            preserveScroll: true,
-            onSuccess: () => {
-                coverIsChanging.value = false;
-                form.reset();
-            }
-        })
-
-    } catch (error) {
+    axiosClient.post(route('groups.image.store', props.groupId), formData).then(response => {
+        coverIsChanging.value = false;
+        alert(response.data.message || 'Cover updated successfully');
+    }).catch(error => {
         console.error('Error uploading file', error);
-    }
+    });
+
 }
 
 </script>
@@ -80,19 +75,21 @@ const onCoverSave = async () => {
 <template>
     <div class="relative group w-full h-48 bg-center bg-cover" :style="'background-image: url(' + coverImageSrc + ');'
         ">
-        <div v-if="coverIsChanging" class="flex items-center gap-2 absolute z-20 top-4 right-2">
-            <SecondaryButton @click="onCoverCancel">
-                Cancel
-            </SecondaryButton>
-            <SecondaryButton @click="onCoverSave">
-                Save
-            </SecondaryButton>
+        <div v-if="canUpdate" class="absolute top-4 right-2">
+            <div v-if="coverIsChanging" class="flex items-center gap-2">
+                <SecondaryButton @click="onCoverCancel">
+                    Cancel
+                </SecondaryButton>
+                <SecondaryButton @click="onCoverSave">
+                    Save
+                </SecondaryButton>
+            </div>
+            <span v-else
+                class="transition-opacity relative opacity-0 group-hover:opacity-100 p-2 font-bold flex items-center bg-gray-50 rounded-md text-xs">
+                <PhotoIcon class="w-5 mr-2" />
+                Edit Cover
+                <input type="file" class="absolute z-30 inset-0 cursor-pointer opacity-0" @change="onCoverChange">
+            </span>
         </div>
-        <span v-else
-            class="absolute z-20 transition-opacity opacity-0 group-hover:opacity-100 p-2 font-bold flex items-center bg-gray-50 rounded-md text-xs top-4 right-2">
-            <PhotoIcon class="w-5 mr-2" />
-            Edit Cover
-            <input type="file" class="absolute inset-0 cursor-pointer opacity-0" @change="onCoverChange">
-        </span>
     </div>
 </template>

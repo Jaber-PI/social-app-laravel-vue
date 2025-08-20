@@ -84,7 +84,7 @@ const onCoverSave = async () => {
 <template>
     <div class="group absolute top-0 w-full h-full bg-center bg-cover" :style="'background-image: url(' + coverImageSrc + ');'
         ">
-        <span id="blackOverlay" class="w-full h-full absolute opacity-60 bg-black"></span>
+        <span id="blackOverlay" class="w-full h-full absolute opacity-60 bg-black pointer-events-none"></span>
         <template v-if="can.edit">
 
             <div v-if="coverIsChanging" class="flex items-center gap-2 absolute z-20 top-4 right-2">
@@ -95,13 +95,13 @@ const onCoverSave = async () => {
                     Save
                 </SecondaryButton>
             </div>
-            <span v-else
-                class="absolute transition-opacity opacity-0 group-hover:opacity-100 p-2 font-bold flex items-center bg-gray-50 rounded-md text-xs z-20 top-4 right-2">
+
+            <label v-else for="cover-input"
+                class="absolute transition-opacity opacity-0 group-hover:opacity-100 p-2 font-bold flex items-center bg-gray-50 rounded-md text-xs z-20 top-4 right-2 cursor-pointer">
                 <PhotoIcon class="w-5 mr-2" />
                 Edit Cover
-                <input type="file" class="absolute inset-0 cursor-pointer opacity-0" @change="onCoverChange">
-            </span>
-
+            </label>
+            <input id="cover-input" type="file" class="hidden" @change="onCoverChange" />
         </template>
 
     </div>

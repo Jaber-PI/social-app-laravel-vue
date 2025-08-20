@@ -13,7 +13,7 @@ class GroupPolicy
      */
     public function viewAny(User $user): bool
     {
-        //
+        return true; // Allow all users to view groups
     }
 
     /**
@@ -37,7 +37,10 @@ class GroupPolicy
      */
     public function update(User $user, Group $group): bool
     {
-        //
+        return $group->members()
+            ->where('user_id', $user->id)
+            ->wherePivot('role', 'admin')
+            ->exists();
     }
 
     /**
@@ -45,7 +48,7 @@ class GroupPolicy
      */
     public function delete(User $user, Group $group): bool
     {
-        //
+        return $this->update($user, $group);
     }
 
     /**
@@ -53,7 +56,7 @@ class GroupPolicy
      */
     public function restore(User $user, Group $group): bool
     {
-        //
+        return $this->update($user, $group);
     }
 
     /**
@@ -61,6 +64,6 @@ class GroupPolicy
      */
     public function forceDelete(User $user, Group $group): bool
     {
-        //
+        return $this->update($user, $group);
     }
 }

@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 
 class GroupResource extends JsonResource
 {
+
+    public static $wrap = null;
     /**
      * Transform the resource into an array.
      *
@@ -39,6 +41,19 @@ class GroupResource extends JsonResource
                 ] : null;
             }),
 
+            $this->mergeWhen(
+                $this->resource->relationLoaded('currentUserMembership'),
+                fn() => [
+                    'can' => [
+                        'update' => $this->currentUserMembership?->role === 'admin',
+                        'delete' => $this->currentUserMembership?->role === 'admin',
+                        'invite' => $this->currentUserMembership?->role === 'admin',
+                    ],
+                ]
+            ),
+
         ];
     }
 }
+
+

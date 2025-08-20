@@ -1,7 +1,7 @@
 <template>
     <div class="bg-white rounded-lg shadow mb-4">
 
-        <GroupCover :groupId="group.id" :cover_path="group.cover_path" />
+        <GroupCover :groupId="group.id" :cover_path="group.cover_path" :canUpdate="group.can.update" />
 
         <div class="p-4 flex">
             <div class="flex-1">

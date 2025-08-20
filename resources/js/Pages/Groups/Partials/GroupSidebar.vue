@@ -12,7 +12,6 @@ const searchKey = ref('');
 </script>
 
 
-
 <template>
 
     <!-- members list  -->
@@ -20,7 +19,7 @@ const searchKey = ref('');
         <div class="flex justify-between items-center mb-2">
             <h2 class="text-xl font-semibold mb-2 hidden sm:block">Members <span>({{ members.length }})</span>
             </h2>
-            <PrimaryButton class="px-4 py-2 bg-blue-600 text-white rounded" v-if="group.current_user.role == 'admin'">
+            <PrimaryButton class="px-4 py-2 bg-blue-600 text-white rounded" v-if="group.can.invite">
                 Invite Member
             </PrimaryButton>
         </div>

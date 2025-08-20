@@ -17,8 +17,11 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 class GroupController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      */
@@ -104,6 +107,9 @@ class GroupController extends Controller
     // save cover and avatara image
     public function saveImage(Request $request, Group $group)
     {
+
+        $this->authorize('update', $group);
+
         $data = $request->validate([
             'cover' => ['image', 'nullable'],
             'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
@@ -119,20 +125,25 @@ class GroupController extends Controller
             $group->cover_path = $file->storeAs($dirName, $fileName, 'public');
             $group->save();
 
-            return redirect()->back()->with('success', 'Cover image has been successfully updated.');
+            // return redirect()->back()->with('success', 'Cover image has been successfully updated.');
+            return response()->json([
+                'success' => true,
+                'message' => 'Cover image updated successfully!',
+                'cover_path' => $group->cover_path, // send new image URL if needed
+            ]);
         }
-        if (isset($data['avatar'])) {
-            if ($group->avatar_path != null) {
-                Storage::disk('public')->delete($group->avatar_path);
-            }
+        // if (isset($data['avatar'])) {
+        //     if ($group->avatar_path != null) {
+        //         Storage::disk('public')->delete($group->avatar_path);
+        //     }
 
-            $file = $data['avatar'];
-            $fileName = time() . '.' . $file->extension();
-            $dirName = 'images/avatars/' . $group->id;
-            $group->avatar_path = $file->storeAs($dirName, $fileName, 'public');
-            $group->save();
-            return redirect()->back()->with('success', 'Operation completed successfully!');
-            return response()->json(['success' => true, 'message' => 'Operation completed successfully!']);
-        }
+        //     $file = $data['avatar'];
+        //     $fileName = time() . '.' . $file->extension();
+        //     $dirName = 'images/avatars/' . $group->id;
+        //     $group->avatar_path = $file->storeAs($dirName, $fileName, 'public');
+        //     $group->save();
+        //     // return redirect()->back()->with('success', 'Operation completed successfully!');
+        //     return response()->json(['success' => true, 'message' => 'Operation completed successfully!']);
+        // }
     }
 }
