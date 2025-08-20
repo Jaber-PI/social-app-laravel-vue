@@ -18,6 +18,7 @@ class HomeController extends Controller
     public function index(Request $request)
     {
         $groups = $request->user()->groups()
+        ->with('currentUserMembership')
         ->orderByPivot('role')
         ->latest()
         ->get();

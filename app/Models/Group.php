@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
@@ -11,7 +12,7 @@ class Group extends Model
 
     use HasSlug;
 
-     public function getSlugOptions(): SlugOptions
+    public function getSlugOptions(): SlugOptions
     {
         return SlugOptions::create()
             ->generateSlugsFrom('name')
@@ -39,8 +40,24 @@ class Group extends Model
 
     public function members()
     {
-        return $this->belongsToMany(User::class, 'group_users')->withPivot('role','approved_at','status','added_by')
+        return $this->belongsToMany(User::class, 'group_users')->withPivot('role', 'approved_at', 'status', 'added_by')
             ->withTimestamps();
+    }
+
+    public function memberships()
+    {
+        return $this->hasMany(GroupMember::class);
+    }
+
+
+    public function currentUserMembership()
+    {
+        return $this->hasOne(GroupMember::class)->where('user_id', Auth::id());
+    }
+
+    public function membershipForUser($userId)
+    {
+        return $this->hasOne(GroupMember::class)->where('user_id', $userId);
     }
 
     public function posts()

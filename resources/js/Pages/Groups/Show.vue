@@ -7,7 +7,9 @@ import PostList from '@/Components/app/PostList.vue';
 
 const props = defineProps({
     group: Object,
+    members: Array,
 });
+
 </script>
 
 <template>
@@ -15,16 +17,19 @@ const props = defineProps({
     <Head :title="group.name" />
     <AuthenticatedLayout>
         <div class="container pt-20 mx-auto h-full">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 overflow-auto scroll-smooth  h-full">
+
+                <GroupHeader class="col-span-1 md:col-span-3" :group="group" />
+
                 <!-- Left Sidebar -->
                 <aside class="hidden md:flex flex-col gap-2">
-                    <GroupSidebar :group="group" />
+                    <GroupSidebar :group="group" :members="members" />
                 </aside>
 
                 <!-- Main Content -->
-                <main class="col-span-1 md:col-span-2 overflow-auto scroll-smooth pb-3 px-2">
-                    <!-- Group Banner + Info -->
-                    <GroupHeader :group="group" />
+
+                <main class="col-span-1 md:col-span-2 pb-3 px-2">
                     <!-- Group posts -->
                     <PostList :canCreate="group.is_member || false" :groupId="group.id" />
                 </main>

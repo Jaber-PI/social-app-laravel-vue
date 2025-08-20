@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\MembershipStatus;
 use App\Enums\UserRole;
 use App\Http\Requests\StoreGroupRequest;
+use App\Http\Resources\GroupMemberResource;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\PostResource;
 use App\Models\Group;
@@ -33,6 +34,19 @@ class GroupController extends Controller
     }
 
     /**
+     * Display the specified resource.
+     */
+    public function show(Group $group)
+    {
+        $group->load(['members', 'creator', 'currentUserMembership']);
+
+        return Inertia::render('Groups/Show', [
+            'group' => new GroupResource($group),
+            'members' => GroupMemberResource::collection($group->members)
+        ]);
+    }
+
+    /**
      * Store a newly created resource in storage.
      */
     public function store(StoreGroupRequest $request)
@@ -49,8 +63,6 @@ class GroupController extends Controller
         $thumbnailPath = $request->hasFile('thumbnail')
             ? $request->file('thumbnail')->store('groups/thumbnails', 'public')
             : null;
-
-
 
         $group = Group::create([
             'name' => $validated['name'],
@@ -69,23 +81,13 @@ class GroupController extends Controller
             'added_by' => $request->user()->id,
         ]);
 
-        $group->user_role = 'admin';
-        $group->user_status = 'approved';
-        $group->user_approved_at = now();
+        $group->load('currentUserMembership');
 
         return response()->json(new GroupResource($group), 201);
         // return redirect()->route('groups.show', $group);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Group $group)
-    {
-        return Inertia::render('Groups/Show', [
-            'group' => new GroupResource($group->load(['members', 'creator'])),
-        ]);
-    }
+
 
     public function posts(Group $group)
     {

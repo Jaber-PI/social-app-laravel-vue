@@ -20,6 +20,7 @@ const props = defineProps({
     }
 })
 
+
 const editPost = ref({});
 const showEditModal = ref(false);
 
@@ -105,7 +106,7 @@ onMounted(() => {
 <template>
 
     <div class="mb-3">
-        <NewPost v-if="canCreate" @postCreated="addPost" />
+        <NewPost v-if="canCreate" @postCreated="addPost" :group-id="groupId"/>
     </div>
 
     <EditorModal v-if="showEditModal" :post="editPost" v-model="showEditModal" @post-updated="updatePost" />

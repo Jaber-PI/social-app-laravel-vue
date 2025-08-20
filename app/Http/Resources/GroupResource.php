@@ -23,32 +23,22 @@ class GroupResource extends JsonResource
             'description' => $this->description,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'members' => GroupMemberResource::collection($this->whenLoaded('members')),
-            'creator' => new GroupMemberResource($this->whenLoaded('creator')),
+
+            'creator' => new UserResource($this->whenLoaded('creator')),
+
             'cover_path' => $this->cover_path,
             'avatar_path' => $this->avatar_path,
 
-            'user_role' => $this->user_role ?? $this->pivot?->role,
-            'user_status' => $this->user_status ?? $this->pivot?->status,
-            'user_approved_at' => $this->user_approved_at ?? $this->pivot?->approved_at,
+            // Membership info for the authenticated user
+            'current_user' => $this->whenLoaded('currentUserMembership', function () {
+                $membership = $this->currentUserMembership;
+                return $membership ? [
+                    'role'        => $membership->role,
+                    'status'      => $membership->status,
+                    'approved_at' => $membership->approved_at,
+                ] : null;
+            }),
 
-            'is_member' => $this->when(
-                Auth::check(),
-                function () {
-                    // Case 1: is_member was loaded via withExists / withCount
-                    if ($this->relationLoaded('is_member') || isset($this->is_member)) {
-                        return (bool) $this->is_member;
-                    }
-
-                    // Case 2: members were eager-loaded (like in show)
-                    if ($this->relationLoaded('members')) {
-                        return $this->members->contains(Auth::id());
-                    }
-
-                    // Fallback: run a direct exists query (only if needed)
-                    return $this->members()->whereKey(Auth::id())->exists();
-                }
-            ),
         ];
     }
 }

@@ -21,7 +21,7 @@ defineProps({
                 {{ group.name }}
             </div>
             <div class="text-xs sm:text-sm">
-                <span class="font-bold">Status:</span> {{ group.user_status == 'approved' ? capitalize(group.user_role) : 'Pending' }}
+                <span class="font-bold">Status:</span> {{ group.current_user?.status == 'approved' ? capitalize(group.current_user?.role) : 'Pending' }}
             </div>
             </Link>
 
