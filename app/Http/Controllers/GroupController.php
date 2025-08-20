@@ -12,7 +12,7 @@ use Illuminate\Contracts\Cache\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
-
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -96,5 +96,41 @@ class GroupController extends Controller
             ->withQueryString();
 
         return PostResource::collection($posts);
+    }
+
+
+    // save cover and avatara image
+    public function saveImage(Request $request, Group $group)
+    {
+        $data = $request->validate([
+            'cover' => ['image', 'nullable'],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+        ]);
+
+        if (isset($data['cover'])) {
+            if ($group->cover_path != null) {
+                Storage::disk('public')->delete($group->cover_path);
+            }
+            $file = $data['cover'];
+            $fileName = time() . '.' . $file->extension();
+            $dirName = 'images/covers/' . $group->id;
+            $group->cover_path = $file->storeAs($dirName, $fileName, 'public');
+            $group->save();
+
+            return redirect()->back()->with('success', 'Cover image has been successfully updated.');
+        }
+        if (isset($data['avatar'])) {
+            if ($group->avatar_path != null) {
+                Storage::disk('public')->delete($group->avatar_path);
+            }
+
+            $file = $data['avatar'];
+            $fileName = time() . '.' . $file->extension();
+            $dirName = 'images/avatars/' . $group->id;
+            $group->avatar_path = $file->storeAs($dirName, $fileName, 'public');
+            $group->save();
+            return redirect()->back()->with('success', 'Operation completed successfully!');
+            return response()->json(['success' => true, 'message' => 'Operation completed successfully!']);
+        }
     }
 }

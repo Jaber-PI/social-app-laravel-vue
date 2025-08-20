@@ -1,7 +1,8 @@
 <template>
     <div class="bg-white rounded-lg shadow mb-4">
-        <img :src="group.cover_path ? `/storage/${group.cover_path}` : default_cover"
-            class="w-full h-48 object-cover rounded-t-lg" />
+
+        <GroupCover :groupId="group.id" :cover_path="group.cover_path" />
+
         <div class="p-4 flex">
             <div class="flex-1">
                 <h1 class="text-xl font-bold">{{ group.name }}</h1>
@@ -21,7 +22,7 @@
 
 <script setup>
 
-const default_cover = '/storage/groups/covers/default_cover.jpg';
+import GroupCover from './GroupCover.vue';
 
 const props = defineProps({
     group: Object

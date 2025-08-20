@@ -40,6 +40,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/{group}/join', 'join')->name('join');
         Route::post('/{group}/leave', 'leave')->name('leave');
 
+        Route::post('/{group}/image', 'saveImage')->name('image.store');
+
         Route::get('/{group}/posts', 'posts')->name('posts');
 
     });

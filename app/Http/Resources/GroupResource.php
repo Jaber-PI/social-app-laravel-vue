@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Auth;
 
+
 class GroupResource extends JsonResource
 {
     /**
@@ -22,8 +23,8 @@ class GroupResource extends JsonResource
             'description' => $this->description,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'members' => UserResource::collection($this->whenLoaded('members')),
-            'creator' => new UserResource($this->whenLoaded('creator')),
+            'members' => GroupMemberResource::collection($this->whenLoaded('members')),
+            'creator' => new GroupMemberResource($this->whenLoaded('creator')),
             'cover_path' => $this->cover_path,
             'avatar_path' => $this->avatar_path,
 

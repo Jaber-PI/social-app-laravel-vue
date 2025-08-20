@@ -1,8 +1,8 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import GroupHeader from '@/Components/app/GroupHeader.vue';
-import GroupSidebar from '@/Components/app/GroupSidebar.vue';
+import GroupHeader from '@/Pages/Groups/Partials/GroupHeader.vue';
+import GroupSidebar from '@/Pages/Groups/Partials/GroupSidebar.vue';
 import PostList from '@/Components/app/PostList.vue';
 
 const props = defineProps({
