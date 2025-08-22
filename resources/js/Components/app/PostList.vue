@@ -118,6 +118,7 @@ onMounted(() => {
         <PostItem v-for="post in posts" @previewAttachment="openPreviewModal" @editClick="openEditModal" :key="post.id"
             :post="post" @post-deleted="deletePost" />
     </div>
+
     <div v-if="loading" class="text-center py-4">Loading...</div>
     <div v-if="noMorePosts" class="text-center py-4">No more posts</div>
 

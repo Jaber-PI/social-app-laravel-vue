@@ -38,26 +38,50 @@ class Group extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function invitedUsers()
+    {
+        return $this->belongsToMany(User::class, 'group_users')
+            ->withPivotValue('status', 'invited')
+            ->withPivot('added_by', 'confirmation_token')
+            ->withTimestamps();
+    }
+
     public function members()
     {
         return $this->belongsToMany(User::class, 'group_users')->withPivot('role', 'approved_at', 'status', 'added_by')
             ->withTimestamps();
     }
 
-    public function memberships()
+    public function admins()
     {
-        return $this->hasMany(GroupMember::class);
+        return $this->belongsToMany(User::class, 'group_users')->wherePivot('role', 'admin')->withPivot('role', 'approved_at', 'status', 'added_by')
+            ->withTimestamps();
     }
 
+    public function approvedMembers()
+    {
+        return $this->belongsToMany(User::class, 'group_users')->wherePivot('status', 'approved')->withPivot('role', 'approved_at', 'status', 'added_by')
+            ->withTimestamps();
+    }
+
+    public function pendingRequests()
+    {
+        return $this->hasMany(GroupUser::class)->where('status', 'pending');
+    }
+
+    public function memberships()
+    {
+        return $this->hasMany(GroupUser::class);
+    }
 
     public function currentUserMembership()
     {
-        return $this->hasOne(GroupMember::class)->where('user_id', Auth::id());
+        return $this->hasOne(GroupUser::class)->where('user_id', Auth::id());
     }
 
     public function membershipForUser($userId)
     {
-        return $this->hasOne(GroupMember::class)->where('user_id', $userId);
+        return $this->hasOne(GroupUser::class)->where('user_id', $userId);
     }
 
     public function posts()

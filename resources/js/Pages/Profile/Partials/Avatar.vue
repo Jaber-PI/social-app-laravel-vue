@@ -35,14 +35,18 @@
 
 <script>
 import { CheckCircleIcon, CheckIcon, XMarkIcon } from '@heroicons/vue/20/solid';
-import SecondaryButton from '@/Components/SecondaryButton.vue';
 
 import { PhotoIcon } from '@heroicons/vue/20/solid';
 
 import { ref } from 'vue';
 
+import SecondaryButton from '@/Components/SecondaryButton.vue';
+
 export default {
     props: ['user', 'can'],
+    components: {
+        SecondaryButton
+    },
     setup(props) {
         const defaultImage = '/images/monir.jpeg';
         const imageSrc = ref(null);
@@ -110,6 +114,7 @@ export default {
             onCancel,
             onSave,
         }
+
     },
 
 }

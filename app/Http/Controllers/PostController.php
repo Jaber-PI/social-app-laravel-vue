@@ -15,10 +15,9 @@ use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
-
     public function index()
     {
-        $posts = Post::with('author', 'attachments', 'reactedByAuthUser')->withCount('reactions', 'comments')
+        $posts = Post::with('author', 'group', 'attachments', 'reactedByAuthUser')->withCount('reactions', 'comments')
             ->latest()
             ->cursorPaginate(5)
             ->withQueryString();

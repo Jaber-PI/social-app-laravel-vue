@@ -43,6 +43,19 @@ class GroupPolicy
             ->exists();
     }
 
+    public function invite(User $user, Group $group): bool
+    {
+        return $group->members()
+            ->where('user_id', $user->id)
+            ->wherePivot('role', 'admin')
+            ->exists();
+    }
+
+    public function requestToJoin(User $user, Group $group): bool
+    {
+        return true;
+    }
+
     /**
      * Determine whether the user can delete the model.
      */

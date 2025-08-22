@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import DisclosureNavItem from '@/Components/app/DisclosureNavItem.vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
@@ -11,7 +11,34 @@ import { Link, usePage } from '@inertiajs/vue3';
 import GroupList from '@/Components/app/GroupList.vue';
 import FriendList from '@/Components/app/FriendList.vue';
 
-const user = usePage().props.auth.user;
+const page = usePage()
+
+const user = page.props.auth.user;
+
+const success = computed(() => page.props.flash.success)
+const errors = computed(() => page.props.errors)
+
+
+const toasts = ref([])
+
+// Watch for new messages and push them into `toasts`
+watch(success, (val) => {
+    if (val) addToast(val, 'success')
+})
+
+watch(errors, (val) => {
+    if (val.error) addToast(val.error, 'error')
+})
+
+function addToast(message, type) {
+    const id = Date.now()
+    toasts.value.push({ id, message, type })
+
+    // Auto remove after 4s
+    setTimeout(() => {
+        toasts.value = toasts.value.filter(t => t.id !== id)
+    }, 4000)
+}
 
 const showingNavigationDropdown = ref(false);
 
@@ -158,5 +185,34 @@ const showingNavigationDropdown = ref(false);
                 <slot />
             </main>
         </div>
+
+        <!-- Toast container -->
+        <div class="fixed bottom-4 right-4 space-y-2 z-50">
+            <div v-for="toast in toasts" :key="toast.id" :class="[
+                'px-4 py-2 rounded-lg shadow-lg text-white animate-fade-in-up',
+                toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'
+            ]">
+                {{ toast.message }}
+            </div>
+        </div>
     </div>
 </template>
+
+<style>
+/* Simple animation for fade/slide in */
+@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in-up {
+    animation: fade-in-up 0.3s ease-out;
+}
+</style>

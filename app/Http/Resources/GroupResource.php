@@ -26,6 +26,8 @@ class GroupResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
 
+            'is_public' => false,
+
             'creator' => new UserResource($this->whenLoaded('creator')),
 
             'cover_path' => $this->cover_path,
@@ -48,12 +50,33 @@ class GroupResource extends JsonResource
                         'update' => $this->currentUserMembership?->role === 'admin',
                         'delete' => $this->currentUserMembership?->role === 'admin',
                         'invite' => $this->currentUserMembership?->role === 'admin',
+                        'approve' => true,
+                        'post' => $this->currentUserMembership?->status === 'approved',
+                        'view' => $this->currentUserMembership?->status === 'approved',
+                        'join' => true,
                     ],
                 ]
             ),
 
+            $this->mergeWhen(
+                $this->canSeeInvitedUsers(),
+                fn() => [
+                    'invited_users' => GroupMemberResource::collection($this->whenLoaded('invitedUsers')),
+
+                ]
+            ),
+            $this->mergeWhen(
+                $this->canSeeInvitedUsers(),
+                fn() => [
+                    'pending_requests' => MembershipResource::collection($this->whenLoaded('pendingRequests')),
+                ]
+            ),
         ];
     }
+
+    protected function canSeeInvitedUsers(): bool
+    {
+        return $this->resource->relationLoaded('currentUserMembership')
+            && $this->currentUserMembership?->role === 'admin';
+    }
 }
-
-

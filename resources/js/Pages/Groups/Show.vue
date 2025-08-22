@@ -16,22 +16,21 @@ const props = defineProps({
 
     <Head :title="group.name" />
     <AuthenticatedLayout>
-        <div class="container pt-20 mx-auto h-full">
-
+        <div class="container pt-20 mx-auto">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 overflow-auto scroll-smooth  h-full">
-
-                <GroupHeader class="col-span-1 md:col-span-3" :group="group" />
+                <div class="col-span-1 md:col-span-3 rounded-lg shadow ">
+                    <GroupHeader :group="group" />
+                </div>
 
                 <!-- Left Sidebar -->
                 <aside class="hidden md:flex flex-col gap-2">
                     <GroupSidebar :group="group" :members="members" />
                 </aside>
 
-                <!-- Main Content -->
-
                 <main class="col-span-1 md:col-span-2 pb-3 px-2">
                     <!-- Group posts -->
-                    <PostList :canCreate="group.is_member || false" :groupId="group.id" />
+                    <PostList v-if="group.can.view || group.is_public" :canCreate="group.can.post || false" :groupId="group.id" />
+                    <p v-else class="text-center p-5 bg-red-500 text-white rounded-md">The Group is private</p>
                 </main>
             </div>
         </div>

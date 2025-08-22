@@ -9,7 +9,7 @@ enum MembershipStatus: string
     // case Banned = 'banned';
     // case Invited = 'invited';
     case Approved = 'approved';
-    case Rejected = 'rejected';
+    case Rejected = 'declined';
 
     public static function values(): array
     {

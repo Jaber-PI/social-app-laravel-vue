@@ -4,8 +4,9 @@ import { ChatBubbleOvalLeftEllipsisIcon, HandThumbUpIcon, ShareIcon } from "@her
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 import { ChevronDownIcon } from '@heroicons/vue/20/solid'
 
+import { ref } from 'vue';
+import { Link } from "@inertiajs/vue3";
 
-import { computed, ref } from "vue";
 import { router } from "@inertiajs/vue3";
 
 import { isImage } from "@/helpers";
@@ -117,8 +118,9 @@ const react = async () => {
                         </p>
                         <template v-if="post.group">
                             <span class=" mx-2 font-medium"> > </span>
-                            <p class="font-medium hover:underline cursor-pointer">
-                                {{ post.group.name }}</p>
+                            <Link :href="route('groups.show', post.group.slug)" class="font-medium hover:underline cursor-pointer">
+                                {{ post.group.name }}
+                            </Link>
                         </template>
                     </div>
                     <p v-if="post.created_at" class="text-xs text-gray-400">
