@@ -59,7 +59,7 @@ class CommentController extends Controller
             'user_id' => $request->user()->id
         ]);
 
-        return response()->json(new CommentResource($comment->load('user:id,name')));
+        return response()->json(new CommentResource($comment->load('user:id,name')), 201);
     }
 
 

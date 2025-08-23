@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class GroupMemberResource extends JsonResource
@@ -22,6 +23,9 @@ class GroupMemberResource extends JsonResource
             'status'   => $this->pivot?->status,
             'joined_at' => $this->pivot?->approved_at,
             'added_by'  => $this->pivot?->added_by,
+
+            'isCurrentUser' => $this->id === Auth::id(),
+            'isAdmin' => $this->pivot?->status === 'approved' && $this->pivot?->role === 'admin',
 
             'inviter' => $this->whenLoaded('inviter', function () {
                 return [

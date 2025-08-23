@@ -11,6 +11,7 @@ import { computed, ref } from 'vue'
 
 import axiosClient from "@/lib/axiosClient";
 import NewComment from './NewComment.vue'
+import emitter from '@/lib/eventBus'
 
 
 const props = defineProps({
@@ -45,11 +46,21 @@ const updateComment = async () => {
     try {
         const response = await axios.put(route('comments.update', props.comment.id), {
             body: editedComment.value.body
-        })
-        emit('update', response.data)
+        });
+        emit('update', response.data
+        );
+
+        emitter.emit('show-toast', {
+            message: 'Comment updated successfully.',
+            type: 'success'
+        });
+
         onEditing.value = false
     } catch (error) {
-        console.error(error)
+        emitter.emit('show-toast', {
+            message: error.response.data.message,
+            type: 'error'
+        });
     } finally {
         submitting.value = false
     }
@@ -60,9 +71,16 @@ function deleteClick() {
         axios.delete(route('comments.delete', props.comment.id))
             .then(() => {
                 emit('delete', props.comment.id)
+                emitter.emit('show-toast', {
+                    message: 'Comment deleted successfully.',
+                    type: 'success'
+                });
             })
             .catch(error => {
-                console.error('Error deleting comment:', error)
+                emitter.emit('show-toast', {
+                    message: error.response.data.message,
+                    type: 'error'
+                });
             })
     }
 }
@@ -222,9 +240,7 @@ const canHide = ref(props.comment.can.hide || false)
                     Reply
                 </button>
                 <span class="text-xs text-gray-500 cursor-pointer px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded"
-                @click="toggleReplies"
-                v-if="repliesCount > 0"
-                >{{ repliesCount }}</span>
+                    @click="toggleReplies" v-if="repliesCount > 0">{{ repliesCount }}</span>
 
                 <!-- button  to show replies  -->
 

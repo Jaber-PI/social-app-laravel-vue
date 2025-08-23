@@ -7,6 +7,7 @@ use App\Enums\MembershipStatus;
 use App\Enums\UserRole;
 use App\Http\Requests\GroupInviteMemberRequest;
 use App\Http\Requests\StoreGroupRequest;
+use App\Http\Requests\UpdateGroupRequest;
 use App\Http\Resources\GroupMemberResource;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\PostResource;
@@ -50,7 +51,7 @@ class GroupController extends Controller
      */
     public function show(Group $group)
     {
-        $group->load(['approvedMembers', 'pendingRequests', 'pendingRequests.user', 'creator', 'currentUserMembership']);
+        $group->load(['approvedMembers', 'pendingRequests', 'pendingRequests.user', 'creator', 'currentUserMembership'])->loadCount('approvedMembers');
 
         return Inertia::render('Groups/Show', [
             'group' => new GroupResource($group),
@@ -74,6 +75,16 @@ class GroupController extends Controller
 
         return response()->json(new GroupResource($group->load('currentUserMembership')), 201);
     }
+
+    public function update(Group $group, UpdateGroupRequest $request)
+    {
+        $this->authorize('update', $group);
+
+        $group->update($request->only(['name', 'description', 'auto_approval']));
+
+        return back()->with('success', 'Group updated successfully.');
+    }
+
 
     public function inviteMember(GroupInviteMemberRequest $request, Group $group)
     {

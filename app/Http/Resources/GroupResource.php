@@ -33,6 +33,8 @@ class GroupResource extends JsonResource
             'cover_path' => $this->cover_path,
             'avatar_path' => $this->avatar_path,
 
+            'members_count' => $this->whenCounted('approvedMembers'),
+
             $this->mergeWhen(
                 $this->resource->relationLoaded('currentUserMembership'),
                 function () {
