@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Groups\CreateGroupAction;
 use App\Enums\MembershipStatus;
-
+use App\Enums\UserRole;
 use App\Http\Requests\GroupInviteMemberRequest;
 use App\Http\Requests\StoreGroupRequest;
 use App\Http\Resources\GroupMemberResource;
@@ -25,6 +26,7 @@ use Inertia\Inertia;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rules\Enum;
 
 class GroupController extends Controller
 {
@@ -59,42 +61,18 @@ class GroupController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreGroupRequest $request)
+    public function store(StoreGroupRequest $request, CreateGroupAction $createGroup)
     {
-
         Gate::authorize('create', Group::class);
 
-        $validated = $request->validated();
+        $group = $createGroup->execute(
+            $request->user(),
+            $request->only(['name', 'description', 'auto_approval']),
+            $request->file('cover'),
+            $request->file('thumbnail')
+        );;
 
-        $coverPath = $request->hasFile('cover')
-            ? $request->file('cover')->store('groups/covers', 'public')
-            : null;
-
-        $thumbnailPath = $request->hasFile('thumbnail')
-            ? $request->file('thumbnail')->store('groups/thumbnails', 'public')
-            : null;
-
-        $group = Group::create([
-            'name' => $validated['name'],
-            'description' => $validated['description'] ?? null,
-            'cover_path' => $coverPath,
-            'thumbnail_path' => $thumbnailPath,
-            'auto_approval' => $validated['auto_approval'] ?? true,
-            'slug' => Str::slug($validated['name']) . '-' . uniqid(),
-            'created_by' => $request->user()->id,
-        ]);
-
-        $group->members()->attach($request->user()->id, [
-            'role' => 'admin',
-            'approved_at' => now(),
-            'status' => 'approved',
-            'added_by' => $request->user()->id,
-        ]);
-
-        $group->load('currentUserMembership');
-
-        return response()->json(new GroupResource($group), 201);
-        // return redirect()->route('groups.show', $group);
+        return response()->json(new GroupResource($group->load('currentUserMembership')), 201);
     }
 
     public function inviteMember(GroupInviteMemberRequest $request, Group $group)
@@ -164,14 +142,13 @@ class GroupController extends Controller
             $group->admins->each(function ($admin) use ($group, $membership) {
                 $admin->notify(new GroupJoinRequest($group, $membership->user));
             });
-            return back()->with('success', 'Request to join group sent successfully.');
+            return back()->with(['success' => 'Request to join group sent successfully.']);
         }
 
-        return back()->withErrors([
-            'error' => 'You have already requested to join this group.'
-        ]);
+        return back()->withErrors(['error' => 'You have already requested to join this group.'], 409);
     }
 
+    // cancel request
     public function cancelRequest(Group $group)
     {
         $this->authorize('requestToJoin', $group);
@@ -186,27 +163,19 @@ class GroupController extends Controller
             return back()->with('success', 'Request to join group cancelled successfully.');
         }
 
-        return back()->withErrors([
-            'error' => 'You have no pending request to cancel.'
-        ]);
+        return back()->withErrors(['error' => 'You have no pending request to cancel.'], 404);
     }
 
 
     public function leave(Group $group)
     {
+        $detached = $group->members()->detach(Auth::id());
 
-        $membership = GroupUser::where('group_id', $group->id)
-            ->where('user_id', Auth::id())
-            ->first();
-
-        if ($membership) {
-            $membership->delete();
+        if ($detached) {
             return back()->with('success', 'You have left the group successfully.');
         }
 
-        return back()->withErrors([
-            'error' => 'You are not a member of this group.'
-        ]);
+        return back()->withErrors(['error' => 'You are not a member of this group.'], 404);
     }
 
     // admin approve
@@ -229,7 +198,6 @@ class GroupController extends Controller
             'error' => 'Member not found.'
         ]);
     }
-
 
     public function rejectRequest(Group $group, $requestID)
     {
@@ -269,6 +237,35 @@ class GroupController extends Controller
         ]);
     }
 
+    public function changeRole(Group $group, Request $request)
+    {
+        $this->authorize('update', $group);
+
+        $data = $request->validate([
+            'role' => ['required', new Enum(UserRole::class)],
+            'user_id' => ['required', 'numeric'],
+        ]);
+
+        $membership = GroupUser::where('group_id', $group->id)
+            ->where('user_id', $data['user_id'])
+            ->first();
+
+        if (!$membership) {
+            return back()->withErrors([
+                'error' => 'Member not found.'
+            ]);
+        }
+        // Prevent admin from changing their own role
+
+        if ($membership->isAdmin() && Auth::id() == $data['user_id']) {
+            return back()->withErrors([
+                'error' => 'You cannot change your own role as an admin.'
+            ]);
+        }
+
+        $membership->update(['role' => $data['role']]);
+        return back()->with('success', 'Member role updated successfully.');
+    }
 
     public function posts(Group $group)
     {

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted,onUnmounted, ref, watch } from 'vue';
 
 import DisclosureNavItem from '@/Components/app/DisclosureNavItem.vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
@@ -10,6 +10,7 @@ import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import GroupList from '@/Components/app/GroupList.vue';
 import FriendList from '@/Components/app/FriendList.vue';
+import emitter from '@/lib/eventBus';
 
 const page = usePage()
 
@@ -39,6 +40,21 @@ function addToast(message, type) {
         toasts.value = toasts.value.filter(t => t.id !== id)
     }, 4000)
 }
+
+
+const handleToastEvent = (payload) => {
+    addToast(payload.message, payload.type);
+};
+
+// When the component mounts, start listening for the 'show-toast' event
+onMounted(() => {
+    emitter.on('show-toast', handleToastEvent);
+});
+
+// When the component unmounts, clean up the listener to prevent memory leaks
+onUnmounted(() => {
+    emitter.off('show-toast', handleToastEvent);
+});
 
 const showingNavigationDropdown = ref(false);
 

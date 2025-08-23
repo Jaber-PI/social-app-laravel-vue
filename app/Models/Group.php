@@ -38,6 +38,8 @@ class Group extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+
+
     public function invitedUsers()
     {
         return $this->belongsToMany(User::class, 'group_users')
@@ -50,6 +52,11 @@ class Group extends Model
     {
         return $this->belongsToMany(User::class, 'group_users')->withPivot('role', 'approved_at', 'status', 'added_by')
             ->withTimestamps();
+    }
+
+    public function isAdmin(User $user)
+    {
+        return $this->admins()->where('user_id', $user->id)->exists();
     }
 
     public function admins()

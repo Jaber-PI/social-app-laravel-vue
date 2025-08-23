@@ -3,14 +3,19 @@
 import GroupCover from './GroupCover.vue';
 
 import { router } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 
 const props = defineProps({
     group: Object
 });
 
+const canJoin = computed(() => props.group.can.join);
+const canLeave = computed(() => props.group.can.leave);
+const canCancel = computed(() => props.group.can.cancel);
+
 function joinGroup() {
-    router.post(route('groups.request', props.group.id,), {
-        preserveScroll: true
+    router.post(route('groups.request', props.group.id), {
+        preserveScroll: true,
     })
 }
 
@@ -18,16 +23,17 @@ function leaveGroup() {
     if (!confirm('Are you sure you want to leave this group?')) {
         return;
     }
-    router.delete(route('groups.leave', props.group.id), {
-        preserveScroll: true
-    })
+
+    router.post(route('groups.leave', props.group.id), {
+        preserveScroll: true,
+    });
 }
 
 
 function cancelRequest() {
     router.delete(route('groups.cancelRequest', props.group.id), {
-        preserveScroll: true
-    })
+        preserveScroll: true,
+    });
 }
 
 </script>
@@ -43,19 +49,15 @@ function cancelRequest() {
                 <p class="text-gray-600">{{ group.description }}</p>
             </div>
             <div class="">
-                <button class="px-4 py-2 bg-blue-600 text-white rounded" v-if="!group.current_user && group.can.join" @click="joinGroup">
+                <button class="px-4 py-2 bg-blue-600 text-white rounded" v-if="canJoin" @click="joinGroup">
                     Join Group
                 </button>
 
                 <!-- leave button  -->
-                <button v-else-if="group.current_user.status == 'approved'"
-                    class="px-4 py-2 bg-gray-500 text-white rounded"
-                    @click="leaveGroup">
+                <button v-else-if="canLeave" class="px-4 py-2 bg-gray-500 text-white rounded" @click="leaveGroup">
                     Leave Group
                 </button>
-                <button v-else-if="group.current_user.status == 'pending'"
-                    class="px-4 py-2 bg-red-500 text-white rounded"
-                    @click="cancelRequest">
+                <button v-else-if="canCancel" class="px-4 py-2 bg-red-500 text-white rounded" @click="cancelRequest">
                     Cancel Request
                 </button>
             </div>

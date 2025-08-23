@@ -38,16 +38,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/{group}', 'update')->name('update');
         Route::delete('/{group}', 'destroy')->name('delete');
 
-
         Route::post('/{group}/request', 'requestToJoin')->name('request');
         Route::delete('/{group}/request', 'cancelRequest')->name('cancelRequest');
         Route::delete('/{group}/leave', 'leave')->name('leave');
 
-        Route::post('/{group}/approve/{requestId}', 'approveRequest')->name('approve');
-        Route::post('/{group}/reject/{requestId}', 'rejectRequest')->name('reject');
+        Route::post('/{group}/approve/{request}', 'approveRequest')->name('approve');
+        Route::post('/{group}/reject/{request}', 'rejectRequest')->name('reject');
 
         Route::post('/{group}/invite', 'inviteMember')->name('invite');
         Route::get('/{group}/invitations/{token}', 'acceptInvitation')->name('accept-invitation');
+
+        Route::post('/{group}/change-role', 'changeRole')->name('changeRole');
 
         Route::post('/{group}/image', 'saveImage')->name('image.store');
 

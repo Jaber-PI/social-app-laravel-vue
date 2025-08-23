@@ -33,29 +33,31 @@ class GroupResource extends JsonResource
             'cover_path' => $this->cover_path,
             'avatar_path' => $this->avatar_path,
 
-            // Membership info for the authenticated user
-            'current_user' => $this->whenLoaded('currentUserMembership', function () {
-                $membership = $this->currentUserMembership;
-                return $membership ? [
-                    'role'        => $membership->role,
-                    'status'      => $membership->status,
-                    'approved_at' => $membership->approved_at,
-                ] : null;
-            }),
-
             $this->mergeWhen(
                 $this->resource->relationLoaded('currentUserMembership'),
-                fn() => [
-                    'can' => [
-                        'update' => $this->currentUserMembership?->role === 'admin',
-                        'delete' => $this->currentUserMembership?->role === 'admin',
-                        'invite' => $this->currentUserMembership?->role === 'admin',
-                        'approve' => true,
-                        'post' => $this->currentUserMembership?->status === 'approved',
-                        'view' => $this->currentUserMembership?->status === 'approved',
-                        'join' => true,
-                    ],
-                ]
+                function () {
+                    $membership = $this->currentUserMembership;
+                    return [
+                        'can' => [
+                            'update' => $membership?->role === 'admin',
+                            'delete' => $membership?->role === 'admin',
+                            'invite' => $membership?->role === 'admin',
+                            'approve' => true,
+                            'post' => $membership?->status === 'approved',
+                            'view' => $membership?->status === 'approved',
+                            'join' => !$membership,
+                            'leave' => $membership?->status === 'approved',
+                            'cancel' => $membership?->status === 'pending'
+                        ],
+                        'current_user' => $membership ? [
+                            'role'        => $membership->role,
+                            'status'      => $membership->status,
+                            'approved_at' => $membership->approved_at,
+                            'isAdmin' => $membership->role === 'admin',
+                            'isOwner' => $membership->user_id === $this->creator_id,
+                        ] : null,
+                    ];
+                }
             ),
 
             $this->mergeWhen(

@@ -10,6 +10,13 @@ import { router } from '@inertiajs/vue3';
 
 const props = defineProps(['group', 'members']);
 
+const isAdmin = computed(() => {
+    return props.group.current_user?.isAdmin;
+});
+
+const isOwner = computed(() => {
+    return props.group.current_user?.isOwner;
+});
 
 const pendingRequests = computed(() => {
     return props.group.pending_requests;
@@ -30,10 +37,13 @@ function approve(requestId) {
 }
 
 function reject(requestId) {
-    console.log(requestId);
     router.post(route('groups.reject', [props.group.id, requestId]), {}, {
         preserveScroll: true,
     })
+}
+
+function changeRole(userId, role) {
+    router.post(route('groups.changeRole', props.group.id), { user_id: userId, role }, { preserveScroll: true })
 }
 
 </script>
@@ -68,7 +78,14 @@ function reject(requestId) {
                             <div class="font-bold text-l sm:text-xl">
                                 {{ member.name }}
                             </div>
-                            <div class="text-gray-500">{{ capitalize(member.role) }}</div>
+                            <div v-if="isAdmin && !isOwner" class="ml-4">
+                                <select v-model="member.role" @change="changeRole(member.id, member.role)"
+                                    class="border rounded px-2 pr-8  py-1 bg-white text-gray-700 focus:outline-none transition">
+                                    <option value="member">Member</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                            <div v-else class="text-gray-500">{{ capitalize(member.role) }}</div>
                         </div>
                     </div>
                 </template>

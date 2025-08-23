@@ -23,6 +23,7 @@
         "@ckeditor/ckeditor5-vue": "^7.3.0",
         "@headlessui/vue": "^1.7.23",
         "@heroicons/vue": "^2.1.5",
-        "date-fns": "^4.1.0"
+        "date-fns": "^4.1.0",
+        "mitt": "^3.0.1"
     }
 }

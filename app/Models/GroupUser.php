@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Model;
 
 class GroupUser extends Model
@@ -22,5 +23,10 @@ class GroupUser extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    function isAdmin()
+    {
+        return $this->role === UserRole::Admin->value;
     }
 }
