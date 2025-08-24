@@ -49,13 +49,32 @@ class GroupController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Group $group)
+    public function show(Group $group, Request $request)
     {
+
+        // / Define valid tabs
+        $validTabs = ['posts', 'about', 'members'];
+
+        // Get tab from URL parameter, default to 'posts'
+        $currentTab = $request->query('tab', 'posts');
+
+        // Validate tab parameter
+        if (!in_array($currentTab, $validTabs)) {
+            // Redirect to valid tab if invalid tab provided
+            return redirect()->route('groups.show', [
+                'group' => $group->id,
+                'tab' => 'posts'
+            ]);
+        }
+
+
         $group->load(['approvedMembers', 'pendingRequests', 'pendingRequests.user', 'creator', 'currentUserMembership'])->loadCount('approvedMembers');
 
         return Inertia::render('Groups/Show', [
             'group' => new GroupResource($group),
-            'members' => GroupMemberResource::collection($group->approvedMembers)
+            'members' => GroupMemberResource::collection($group->approvedMembers),
+            'currentTab' => $currentTab,
+            'validTabs' => $validTabs,   // Pass valid tabs for client validation
         ]);
     }
 
@@ -92,9 +111,11 @@ class GroupController extends Controller
 
         // Send invitation logic here
 
+
         $invitee = $request->invitee;
 
         $invite = GroupUser::create([
+            'status' => MembershipStatus::Invited,
             'group_id' => $group->id,
             'user_id' => $invitee->id,
             'confirmation_token' => Str::random(16),
@@ -267,7 +288,6 @@ class GroupController extends Controller
             ]);
         }
         // Prevent admin from changing their own role
-
         if ($membership->isAdmin() && Auth::id() == $data['user_id']) {
             return back()->withErrors([
                 'error' => 'You cannot change your own role as an admin.'
@@ -307,7 +327,7 @@ class GroupController extends Controller
             }
             $file = $data['cover'];
             $fileName = time() . '.' . $file->extension();
-            $dirName = 'images/covers/' . $group->id;
+            $dirName = 'images/groups/covers/' . $group->id;
             $group->cover_path = $file->storeAs($dirName, $fileName, 'public');
             $group->save();
 
@@ -318,18 +338,18 @@ class GroupController extends Controller
                 'cover_path' => $group->cover_path, // send new image URL if needed
             ]);
         }
-        // if (isset($data['avatar'])) {
-        //     if ($group->avatar_path != null) {
-        //         Storage::disk('public')->delete($group->avatar_path);
-        //     }
+        if (isset($data['avatar'])) {
+            if ($group->thumbnail_path != null) {
+                Storage::disk('public')->delete($group->thumbnail_path);
+            }
 
-        //     $file = $data['avatar'];
-        //     $fileName = time() . '.' . $file->extension();
-        //     $dirName = 'images/avatars/' . $group->id;
-        //     $group->avatar_path = $file->storeAs($dirName, $fileName, 'public');
-        //     $group->save();
-        //     // return redirect()->back()->with('success', 'Operation completed successfully!');
-        //     return response()->json(['success' => true, 'message' => 'Operation completed successfully!']);
-        // }
+            $file = $data['avatar'];
+            $fileName = time() . '.' . $file->extension();
+            $dirName = 'images/groups/avatars/' . $group->id;
+            $group->thumbnail_path = $file->storeAs($dirName, $fileName, 'public');
+            $group->save();
+            // return redirect()->back()->with('success', 'Operation completed successfully!');
+            return response()->json(['success' => true, 'message' => 'Operation completed successfully!']);
+        }
     }
 }

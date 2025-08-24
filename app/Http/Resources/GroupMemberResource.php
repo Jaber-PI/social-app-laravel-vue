@@ -24,6 +24,8 @@ class GroupMemberResource extends JsonResource
             'joined_at' => $this->pivot?->approved_at,
             'added_by'  => $this->pivot?->added_by,
 
+            'group_id' => $this->pivot?->group_id,
+
             'isCurrentUser' => $this->id === Auth::id(),
             'isAdmin' => $this->pivot?->status === 'approved' && $this->pivot?->role === 'admin',
 

@@ -7,7 +7,7 @@ enum MembershipStatus: string
     // case Active = 'active';
     case Pending = 'pending';
     // case Banned = 'banned';
-    // case Invited = 'invited';
+    case Invited = 'invited';
     case Approved = 'approved';
     case Rejected = 'declined';
 

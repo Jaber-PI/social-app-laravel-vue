@@ -5,6 +5,7 @@ import { PhotoIcon } from '@heroicons/vue/20/solid';
 import axiosClient from '@/lib/axiosClient.js';
 
 import { ref } from 'vue';
+import emitter from '@/lib/eventBus';
 
 const props = defineProps({
     groupId: Number,
@@ -14,7 +15,7 @@ const props = defineProps({
 
 const default_cover = '/storage/groups/covers/default_cover.jpg';
 
-const coverImageSrc = ref(props.cover_path ? `/storage/${props.cover_path}` : default_cover);
+const coverImageSrc = ref(props.cover_path || default_cover);
 const coverIsChanging = ref(false);
 const selectedImage = ref(null);
 
@@ -63,9 +64,15 @@ const onCoverSave = async () => {
 
     axiosClient.post(route('groups.image.store', props.groupId), formData).then(response => {
         coverIsChanging.value = false;
-        alert(response.data.message || 'Cover updated successfully');
+        emitter.emit('show-toast', {
+            message: 'Cover updated successfully',
+            type: 'success'
+        });
     }).catch(error => {
-        console.error('Error uploading file', error);
+        emitter.emit('show-toast', {
+            message: 'Error uploading file',
+            type: 'error'
+        });
     });
 
 }

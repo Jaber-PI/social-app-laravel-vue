@@ -1,13 +1,13 @@
 <script setup>
 import { ref, toRaw } from 'vue';
-import ModalHeadless from '../ModalHeadless.vue';
+import ModalHeadless from '@/Components/ModalHeadless.vue';
 import { XMarkIcon } from '@heroicons/vue/24/solid';
-import PrimaryButton from '../PrimaryButton.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
 
-import TextInput from '../TextInput.vue';
-import InputError from '../InputError.vue';
-import TextareaInput from '../TextareaInput.vue';
-import Checkbox from '../Checkbox.vue';
+import TextInput from '@/Components/TextInput.vue';
+import InputError from '@/Components/InputError.vue';
+import TextareaInput from '@/Components/TextareaInput.vue';
+import Checkbox from '@/Components/Checkbox.vue';
 
 import axiosClient from '@/lib/axiosClient';
 import { useForm } from '@inertiajs/vue3';
@@ -120,32 +120,6 @@ async function saveGroup() {
                             {{ form.processing ? 'Creating...' : 'Create Group' }}
                         </button>
                     </div>
-
-
-                    <!-- Thumbnail Upload -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Thumbnail</label>
-                        <input type="file" accept="image/*" @change="handleThumbnailChange" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4
-                               file:rounded-full file:border-0 file:text-sm file:font-semibold
-                               file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-                        <div v-if="thumbnailPreview" class="mt-3">
-                            <img :src="thumbnailPreview" alt="Thumbnail Preview"
-                                class="w-32 h-32 object-cover rounded-lg border" />
-                        </div>
-                    </div>
-
-                    <!-- Cover Image -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Cover Image</label>
-                        <input type="file" accept="image/*" @change="handleCoverChange" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4
-                               file:rounded-full file:border-0 file:text-sm file:font-semibold
-                               file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-                        <div v-if="coverPreview" class="mt-3">
-                            <img :src="coverPreview" alt="Cover Preview"
-                                class="w-full h-40 object-cover rounded-lg border" />
-                        </div>
-                    </div>
-
                 </form>
             </div>
         </ModalHeadless>

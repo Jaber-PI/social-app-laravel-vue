@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\Storage;
 
 class GroupResource extends JsonResource
 {
@@ -30,8 +30,8 @@ class GroupResource extends JsonResource
 
             'creator' => new UserResource($this->whenLoaded('creator')),
 
-            'cover_path' => $this->cover_path,
-            'avatar_path' => $this->avatar_path,
+            'cover_path' => Storage::url($this->cover_path),
+            'avatar_path' => Storage::url($this->thumbnail_path),
 
             'members_count' => $this->whenCounted('approvedMembers'),
 

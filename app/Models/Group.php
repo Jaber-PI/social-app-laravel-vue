@@ -67,7 +67,7 @@ class Group extends Model
 
     public function approvedMembers()
     {
-        return $this->belongsToMany(User::class, 'group_users')->wherePivot('status', 'approved')->withPivot('role', 'approved_at', 'status', 'added_by')
+        return $this->belongsToMany(User::class, 'group_users')->wherePivot('status', 'approved')->withPivot('role', 'approved_at', 'status', 'added_by', 'group_id')
             ->withTimestamps();
     }
 
