@@ -4,9 +4,10 @@ import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 import { ChevronDownIcon } from '@heroicons/vue/24/solid'
 import { useForm } from '@inertiajs/vue3'
 
+import { formatDate } from '@/helpers'
+
 import Comments from './Comments.vue'
 
-import { formatDistanceToNow } from 'date-fns'
 import { computed, ref } from 'vue'
 
 import axiosClient from "@/lib/axiosClient";
@@ -24,9 +25,7 @@ const modified = computed(() => {
 
 const defaultAvatar = 'https://ui-avatars.com/api/?name=User&background=random'
 
-const formatDate = (iso) => {
-    return formatDistanceToNow(new Date(iso), { addSuffix: true })
-}
+
 
 const emit = defineEmits(['update', 'delete']);
 
@@ -125,7 +124,6 @@ const loadReplies = async () => {
         }
     });
     if (response.status !== 200) {
-        console.error('Failed to load replies:', response.statusText);
         return;
     }
     replies.value = response.data

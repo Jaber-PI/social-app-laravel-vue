@@ -9,6 +9,7 @@ use App\Http\Requests\GroupInviteMemberRequest;
 use App\Http\Requests\StoreGroupRequest;
 use App\Http\Requests\UpdateGroupRequest;
 use App\Http\Resources\GroupMemberResource;
+use App\Http\Resources\GroupPostResource;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\PostResource;
 use App\Models\Group;
@@ -158,7 +159,7 @@ class GroupController extends Controller
 
     public function requestToJoin(Group $group)
     {
-        $this->authorize('requestToJoin', $group);
+        $this->authorize('join', $group);
 
         $membership = GroupUser::firstOrCreate([
             'group_id' => $group->id,
@@ -183,7 +184,6 @@ class GroupController extends Controller
     // cancel request
     public function cancelRequest(Group $group)
     {
-        $this->authorize('requestToJoin', $group);
 
         $membership = GroupUser::where('group_id', $group->id)
             ->where('user_id', Auth::id())
@@ -300,13 +300,12 @@ class GroupController extends Controller
 
     public function posts(Group $group)
     {
-
-        $posts = $group->posts()->with('author', 'attachments', 'reactedByAuthUser')->withCount('reactions', 'comments')
+        $posts = $group->posts()->with(['author', 'attachments', 'reactedByAuthUser','group','group.currentUserMembership'])->withCount('reactions', 'comments')
             ->latest()
             ->cursorPaginate(5)
             ->withQueryString();
 
-        return PostResource::collection($posts);
+        return GroupPostResource::collection($posts);
     }
 
 

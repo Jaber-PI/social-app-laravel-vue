@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Auth;
 
-class PostResource extends JsonResource
+class GroupPostResource extends JsonResource
 {
 
     /**
@@ -28,16 +28,7 @@ class PostResource extends JsonResource
             'comments' => CommentResource::collection($this->whenLoaded('comments')),
             'author' => new UserResource($this->whenLoaded('author')),
 
-            'group' => $this->whenLoaded('group', function () {
-                return [
-                    'id' => $this->group->id,
-                    'name' => $this->group->name,
-                    'slug' => $this->group->slug,
-                ];
-            }),
-
             'attachments' => PostAttachmentResource::collection($this->whenLoaded('attachments')),
-
 
             'can' => $this->when(Auth::check(), $this->getPermissions()),
             'user_relationship' => $this->when(Auth::check(), $this->getUserRelationship()),

@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class CommentResource extends JsonResource
@@ -27,15 +28,23 @@ class CommentResource extends JsonResource
             'comments_count' => $this->whenCounted('comments'),
             'comments' => CommentResource::collection($this->whenLoaded('comments')),
 
-            'user' => [
-                'id' => $this->user->id,
-                'name' => $this->user->name,
-                'avatar_url' => $this->user->avatar_path ? Storage::url($this->user->avatar_path) : '/images/monir.jpeg',
-            ],
+            'user' => $this->whenLoaded('user', function () {
+                return [
+                    'id' => $this->user->id,
+                    'name' => $this->user->name,
+                    'avatar_url' => $this->user->avatar_path ? Storage::url($this->user->avatar_path) : '/images/monir.jpeg',
+                ];
+            }),
             'can' => [
-                'delete' => $request->user()?->can('delete', $this->resource),
-                'update' => $request->user()?->can('update', $this->resource),
+                'delete' => Auth::id() === $this->created_by || $this->isParentOwner(),
+                'update' => Auth::id() === $this->created_by,
             ],
         ];
+    }
+
+    protected function isParentOwner()
+    {
+        return $this->relationLoaded('commentable') &&
+            $this->commentable->created_by === Auth::id();
     }
 }

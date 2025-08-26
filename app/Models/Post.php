@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 
 class Post extends Model
 {
@@ -57,6 +58,20 @@ class Post extends Model
         return $allFilesPaths ?? 0;
     }
 
+    public function scopeForUser($query, $userId = null)
+    {
+
+        $userId = $userId ?? Auth::id();
+
+        $userGroupsIds = GroupUser::where('user_id', $userId)
+            ->where('status', 'approved')
+            ->pluck('group_id');
+
+        return $query->where(function ($q) use ($userId, $userGroupsIds) {
+            $q->whereNull('group_id')
+                ->orWhereIn('group_id', $userGroupsIds);
+        });
+    }
 
     protected static function booted()
     {

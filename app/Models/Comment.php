@@ -13,11 +13,11 @@ class Comment extends Model
 
     use HasReactions;
 
-    protected $fillable = ['post_id', 'user_id', 'body'];
+    protected $fillable = ['post_id', 'created_by', 'body'];
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function commentable(): MorphTo

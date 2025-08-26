@@ -9,7 +9,7 @@ import { Link } from "@inertiajs/vue3";
 
 import { router } from "@inertiajs/vue3";
 
-import { isImage } from "@/helpers";
+import { formatDate, isImage } from "@/helpers";
 import axiosClient from "@/lib/axiosClient";
 
 
@@ -20,7 +20,7 @@ const props = defineProps({
 })
 
 const readMore = ref(false);
-const showCommentForm = ref(false)
+const showComments = ref(false)
 
 const toggleReadMore = () => {
     readMore.value = !readMore.value;
@@ -52,7 +52,7 @@ function previewAttachment(ind) {
     emit('previewAttachment', props.post.attachments, ind)
 }
 
-const reacted = ref(props.post.reacted_by_user)
+const reacted = ref(props.post.has_reacted)
 const reactionsCount = ref(props.post.reactions_count)
 
 const react = async () => {
@@ -61,7 +61,6 @@ const react = async () => {
         reacted.value = response.data.reacted
         reactionsCount.value = response.data.reactions_count
     } catch (error) {
-        console.error('Error toggling like', error)
     }
 }
 </script>
@@ -84,7 +83,7 @@ const react = async () => {
                 leave-to-class="transform scale-95 opacity-0">
                 <MenuItems
                     class="absolute right-0  w-40 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
-                    <div class="px-1 py-1">
+                    <div class="px-1 py-1" v-if="post.can.update">
                         <MenuItem>
                         <button class='group cursor-pointer flex w-full items-center rounded-md px-1 py-1 text-xs'
                             @click="editClick">
@@ -92,7 +91,7 @@ const react = async () => {
                         </button>
                         </MenuItem>
                     </div>
-                    <div class="px-1 py-1">
+                    <div class="px-1 py-1" v-if="post.can.delete">
                         <MenuItem v-slot="{ active }">
                         <button :class="[
                             active ? 'bg-gray-400 text-white' : 'text-gray-900',
@@ -118,13 +117,14 @@ const react = async () => {
                         </p>
                         <template v-if="post.group">
                             <span class=" mx-2 font-medium"> > </span>
-                            <Link :href="route('groups.show', post.group.slug)" class="font-medium hover:underline cursor-pointer">
-                                {{ post.group.name }}
+                            <Link :href="route('groups.show', post.group.slug)"
+                                class="font-medium hover:underline cursor-pointer">
+                            {{ post.group.name }}
                             </Link>
                         </template>
                     </div>
                     <p v-if="post.created_at" class="text-xs text-gray-400">
-                        {{ new Date(post.created_at).toLocaleString() }}
+                        {{ formatDate(post.created_at) }}
                     </p>
                     <p v-else class="text-xs text-gray-400">Loading</p>
                 </div>
@@ -147,8 +147,7 @@ const react = async () => {
         <div v-if="post.attachments"
             class="relative w-full rounded-t-2xl grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-1">
             <div v-for="(attachment, ind) of post.attachments.slice(0, 4)" :key="attachment.id"
-                @click="previewAttachment(ind)"
-                class="group overflow-hidden hover:b cursor-pointer relative ">
+                @click="previewAttachment(ind)" class="group overflow-hidden hover:b cursor-pointer relative ">
 
                 <!-- download button  -->
                 <button @click="downloadFile(attachment.id)"
@@ -169,8 +168,7 @@ const react = async () => {
                 </div>
                 <!-- if attachment is image -->
                 <img v-if="isImage(attachment)" :src="attachment.url"
-                    class="object-cover transition-transform duration-300 hover:scale-105 rounded-md"
-                    loading="lazy" />
+                    class="object-cover transition-transform duration-300 hover:scale-105 rounded-md" loading="lazy" />
 
                 <!-- if attachment is a file  -->
                 <div v-else class="grid place-content-center bg-blue-100 aspect-square">
@@ -195,7 +193,9 @@ const react = async () => {
         <!-- Post Footer -->
         <div class="flex justify-evenly items-center rounded-b-2xl  shadow-md text-gray-400  border-t">
             <!-- like and react button  -->
-            <button @click="react" :class="[
+            <button
+            :disabled="!post.can.react"
+            @click="react" :class="[
                 'px-3 py-1 rounded-full flex items-center gap-1 text-sm font-medium transition-all',
                 reacted
                     ? 'text-gray-800'
@@ -204,13 +204,13 @@ const react = async () => {
                 class="inputIcon flex justify-center items-center px-5 py-3 rounded-none rounded-bl-2xl hover:text-gray-800 cursor-pointer">
                 <HandThumbUpIcon class="h-5" />
                 <p class="ms-4 text-xs sm:text-base">Like <span>{{ reactionsCount ? '(' + reactionsCount + ')' : ""
-                        }}</span></p>
+                }}</span></p>
             </button>
             <!-- commenting button  -->
-            <button @click="showCommentForm = !showCommentForm"
+            <button @click="showComments = !showComments"
                 class="inputIcon flex justify-center items-center px-5 py-3 rounded-none rounded-bl-2xl hover:text-gray-800 cursor-pointer">
                 <ChatBubbleOvalLeftEllipsisIcon class="h-5" />
-                <p class="ms-4  text-xs sm:text-base">Comment</p>
+                <p class="ms-4  text-xs sm:text-base">Comments ({{ post.comments_count }})</p>
             </button>
 
             <!-- share button  -->
@@ -222,8 +222,8 @@ const react = async () => {
         </div>
 
         <!-- comments list  -->
-        <div v-show="showCommentForm" class="px-2">
-            <PostComments :post-id="post.id" :comments-count="post.comments_count" />
+        <div v-show="showComments" class="px-2">
+            <PostComments :can-comment="post.can.comment" :post-id="post.id" :comments-count="post.comments_count" />
         </div>
 
     </div>

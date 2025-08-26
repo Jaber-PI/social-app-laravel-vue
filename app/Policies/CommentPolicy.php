@@ -60,7 +60,7 @@ class CommentPolicy
      */
     public function update(User $user, Comment $comment): bool
     {
-        return $user->id === $comment->user_id;
+        return $user->id === $comment->created_by;
     }
 
     /**
@@ -68,7 +68,13 @@ class CommentPolicy
      */
     public function delete(User $user, Comment $comment): bool
     {
-        return $user->id === $comment->user_id;
+        if ($user->id === $comment->created_by) {
+            return true;
+        }
+        if ($user->id === $comment->commentable->created_by) {
+            return true;
+        }
+        return false;
     }
 
     /**

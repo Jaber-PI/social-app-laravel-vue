@@ -57,7 +57,7 @@ const hasPendingRequests = computed(() => {
             </PrimaryButton>
 
             <!-- Pending Requests Button -->
-            <SecondaryButton v-if="canSeePendingRequests && hasPendingRequests" @click="togglePendingRequests"
+            <SecondaryButton v-if="group.can.viewPendingRequests && hasPendingRequests" @click="togglePendingRequests"
                 class="requests-btn">
                 Pending Requests ({{ pendingRequestsCount }})
             </SecondaryButton>
@@ -73,7 +73,7 @@ const hasPendingRequests = computed(() => {
                 :requests="group.pending_requests || []" class="mb-4" />
 
             <!-- Members List -->
-            <MembersList v-if="canView" :isAdmin="isAdmin" :members="members" />
+            <MembersList v-if="group.can.viewMembers" :isAdmin="group.can.promoteMembers" :members="members" />
 
             <!-- Private Group Message -->
             <div v-else class="text-gray-400 text-sm text-center p-4">

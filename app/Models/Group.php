@@ -31,14 +31,13 @@ class Group extends Model
 
     protected $casts = [
         'auto_approval' => 'boolean',
+        'is_public' => 'boolean',
     ];
 
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
-
-
 
     public function invitedUsers()
     {

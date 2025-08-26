@@ -28,11 +28,9 @@ class CommentController extends Controller
 
         abort_unless(class_exists($modelClass), 404);
 
-        $commentable = $modelClass::findOrFail($request->commentable_id);
-
-        // Eager load replies + user
-        $comments = $commentable->comments()
-            ->with(['user:id,name', 'reactedByAuthUser'])
+        $comments = Comment::where('commentable_type', $modelClass)
+            ->where('commentable_id', $request->commentable_id)
+            ->with(['user:id,name,avatar_path', 'commentable:created_by', 'reactedByAuthUser'])
             ->withCount(['reactions', 'comments'])
             ->latest()
             ->get();
@@ -56,7 +54,7 @@ class CommentController extends Controller
 
         $comment = $commentable->comments()->create([
             'body' => $request->body,
-            'user_id' => $request->user()->id
+            'created_by' => $request->user()->id
         ]);
 
         return response()->json(new CommentResource($comment->load('user:id,name')), 201);
@@ -66,7 +64,9 @@ class CommentController extends Controller
 
     public function update(Request $request, Comment $comment)
     {
-        $this->authorize('update', $comment); // Checks if user can update
+
+
+        $this->authorize('update', $comment);
         $request->validate([
             'body' => 'required|string|max:1000',
         ]);
@@ -77,7 +77,8 @@ class CommentController extends Controller
 
     public function destroy(Comment $comment)
     {
-        $this->authorize('delete', $comment); // Checks if user can delete
+        $this->authorize('delete', $comment);
+
         $comment->delete();
         return response()->json(['message' => 'Comment deleted.']);
     }

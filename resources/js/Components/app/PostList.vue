@@ -67,7 +67,6 @@ const cursor = ref(null);
 
 const loadPosts = async () => {
     if (loading.value || noMorePosts.value) return
-
     loading.value = true
     const url = props.groupId ? route('groups.posts', props.groupId, {
         cursor: cursor.value || null,
@@ -77,6 +76,7 @@ const loadPosts = async () => {
 
     try {
         const { data } = await axiosClient.get(url)
+
         posts.value.push(...data.data)
 
         if (data.links.next) {
@@ -106,7 +106,7 @@ onMounted(() => {
 <template>
 
     <div class="mb-3">
-        <NewPost v-if="canCreate" @postCreated="addPost" :group-id="groupId"/>
+        <NewPost v-if="canCreate" @postCreated="addPost" :group-id="groupId" />
     </div>
 
     <EditorModal v-if="showEditModal" :post="editPost" v-model="showEditModal" @post-updated="updatePost" />

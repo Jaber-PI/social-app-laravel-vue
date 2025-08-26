@@ -13,11 +13,16 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 class PostController extends Controller
 {
+    use AuthorizesRequests;
     public function index()
     {
-        $posts = Post::with('author', 'group', 'attachments', 'reactedByAuthUser')->withCount('reactions', 'comments')
+        $posts = Post::with(['author', 'group', 'group.currentUserMembership', 'attachments', 'reactedByAuthUser'])
+            ->withCount('reactions', 'comments')
+            ->forUser()
             ->latest()
             ->cursorPaginate(5)
             ->withQueryString();
@@ -50,6 +55,9 @@ class PostController extends Controller
      */
     public function store(StorePostRequest $request)
     {
+
+        $this->authorize('create', Post::class);
+
         $data = $request->validated();
         DB::beginTransaction();
         $allFilesPaths = [];
@@ -57,7 +65,7 @@ class PostController extends Controller
         try {
             $attachments = $data['attachments'];
             unset($data['attachments']);
-            $post = Auth::user()->posts()->create($data);
+            $post = $request->user()->posts()->create($data);
             $allFilesPaths = $post->addAttachments($attachments);
             DB::commit();
 
@@ -86,6 +94,9 @@ class PostController extends Controller
      */
     public function update(UpdatePostRequest $request, Post $post)
     {
+
+        $this->authorize('update', $post);
+
         $data = $request->validated();
         DB::beginTransaction();
 
@@ -115,9 +126,8 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        if (Auth::id() !== $post->created_by) {
-            abort(403, 'Permission denied.');
-        }
+
+        $this->authorize('delete', $post);
 
         $post->delete();
     }
@@ -125,13 +135,14 @@ class PostController extends Controller
 
     public function react(Request $request, Post $post, ReactionService $reactionService)
     {
-        // Gate::authorize('react', $post);
+        $this->authorize('react', $post);
+
         $result = $reactionService->toggleReaction($post, $request->user());
         return response()->json($result);
     }
 
     public function downloadAttachment(PostAttachment $attachment)
     {
-        return Storage::disk('public')->download($attachment->file_path, $attachment->filename);
+        return response()->download(Storage::disk('public')->path($attachment->file_path), $attachment->filename);
     }
 }

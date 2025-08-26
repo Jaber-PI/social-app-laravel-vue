@@ -14,7 +14,6 @@ const props = defineProps({
 
 const editing = ref(false);
 const groupRef = toRef(props, 'group');
-const { isAdmin } = useGroupPermissions(groupRef);
 </script>
 
 <template>
@@ -54,7 +53,7 @@ const { isAdmin } = useGroupPermissions(groupRef);
         </div>
 
         <!-- Admin Actions -->
-        <div v-if="isAdmin" class="border-t pt-4">
+        <div v-if="group.can.update" class="border-t pt-4">
             <h4 class="font-medium text-gray-700 mb-3">Admin Actions</h4>
             <div class="flex space-x-2">
                 <!-- Add edit/manage buttons here -->

@@ -10,7 +10,8 @@ import axiosClient from '@/lib/axiosClient';
 
 const props = defineProps({
     postId: Number,
-    commentsCount: Number
+    commentsCount: Number,
+    canComment: Boolean
 })
 
 const showComments = ref(false)
@@ -70,7 +71,8 @@ const loadComments = async () => {
 
 <template>
     <div class="space-y-2">
-        <NewComment :commentable-id="postId" :commentable-type="'App\\Models\\Post'" @submitted="addComment" class="mt-2" />
+        <NewComment v-if="canComment" :commentable-id="postId" :commentable-type="'App\\Models\\Post'" @submitted="addComment"
+            class="mt-2" />
         <button @click="toggleComments" class="text-sm text-gray-700 mt-1 underline text-right">{{ toggleCommentsText }}
             ({{ newCommentsCount
             }})</button>
