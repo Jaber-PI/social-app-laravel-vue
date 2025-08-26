@@ -28,7 +28,7 @@ class ProfileController extends Controller
             'status' => session('status'),
             "can" => [
                 "connect" => Auth::user() ? true : false,
-                "edit" => Auth::user()?->is($user) ? true : false,
+                "edit" => Auth::id() === $user->id ? true : false,
             ]
         ]);
     }
