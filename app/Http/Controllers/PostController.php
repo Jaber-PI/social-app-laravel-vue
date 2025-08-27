@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use App\Http\Resources\PostResource;
+use App\Models\Group;
 use App\Models\Post;
 use App\Models\PostAttachment;
+use App\Notifications\PostCreatedNotification;
 use App\Services\ReactionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +16,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Notification;
 
 class PostController extends Controller
 {
@@ -55,10 +59,15 @@ class PostController extends Controller
      */
     public function store(StorePostRequest $request)
     {
-
         $this->authorize('create', Post::class);
 
         $data = $request->validated();
+
+        if ($request->group_id) {
+            $group = Group::find($request->group_id);
+            Gate::authorize('post', $group);
+        }
+
         DB::beginTransaction();
         $allFilesPaths = [];
 
@@ -69,15 +78,12 @@ class PostController extends Controller
             $allFilesPaths = $post->addAttachments($attachments);
             DB::commit();
 
-            // if ($request->wantsJson()) {
-            //     return response()->json(new PostResource($post->load('u', 'attachments')));
-            // }
-
-            if ($request->wantsJson()) {
-                return response()->json($post->load('author', 'attachments'));
+            // notify group users
+            if ($request->group_id) {
+                Notification::send($group->approvedMembers, new PostCreatedNotification($post, $request->user(), $group));
             }
 
-            return redirect()->back()->with('success', 'post created');
+
         } catch (\Exception $e) {
             DB::rollBack();
             foreach ($allFilesPaths as $path) {
@@ -86,6 +92,13 @@ class PostController extends Controller
             // throw $e;
             return redirect()->back()->with('error', 'post not created');
         }
+
+
+        if ($request->wantsJson()) {
+            return response()->json($post->load('author', 'attachments'));
+        }
+
+        return redirect()->back()->with('success', 'post created');
     }
 
 
@@ -138,6 +151,7 @@ class PostController extends Controller
         $this->authorize('react', $post);
 
         $result = $reactionService->toggleReaction($post, $request->user());
+
         return response()->json($result);
     }
 

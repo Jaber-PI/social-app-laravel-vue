@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Comment;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Auth;
@@ -38,6 +39,7 @@ class CommentResource extends JsonResource
             'can' => [
                 'delete' => Auth::id() === $this->created_by || $this->isParentOwner(),
                 'update' => Auth::id() === $this->created_by,
+                'comment' => $this->commentable_type !== Comment::class,
             ],
         ];
     }

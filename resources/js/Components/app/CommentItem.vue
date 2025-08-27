@@ -233,7 +233,7 @@ const canHide = ref(props.comment.can.hide || false)
                     Like
                 </button>
                 <span class="text-xs text-gray-500">{{ reactionsCount }}</span>
-                <button @click="toggleReply"
+                <button v-if="comment.can.comment" @click="toggleReply"
                     class="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 ml-2">
                     Reply
                 </button>
@@ -241,7 +241,6 @@ const canHide = ref(props.comment.can.hide || false)
                     @click="toggleReplies" v-if="repliesCount > 0">{{ repliesCount }}</span>
 
                 <!-- button  to show replies  -->
-
             </div>
             <div v-if="showReply" class="mt-2">
                 <NewComment :commentable-id="comment.id" :commentable-type="'App\\Models\\Comment'"

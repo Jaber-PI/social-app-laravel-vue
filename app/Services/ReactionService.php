@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Notifications\ReactionMadeNotification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 
@@ -22,6 +23,8 @@ class ReactionService
         }
 
         $reactable->reactions()->create(['user_id' => $user->id]);
+
+        $reactable->user->notify(new ReactionMadeNotification($reactable, $user));
 
         return [
             'reacted' => true,

@@ -6,6 +6,7 @@ use App\Enums\ReactionType;
 use App\Http\Resources\CommentResource;
 use App\Models\Comment;
 use App\Models\Post;
+use App\Notifications\CommentCreatedNotification;
 use App\Services\ReactionService;
 use Illuminate\Http\Request;
 
@@ -52,10 +53,19 @@ class CommentController extends Controller
 
         $commentable = $modelClass::findOrFail($request->commentable_id);
 
+        if ($commentable instanceof \App\Models\Comment && $commentable->commentable instanceof \App\Models\Comment) {
+            abort(500, 'Something went wrong');
+        };
+
+
         $comment = $commentable->comments()->create([
             'body' => $request->body,
             'created_by' => $request->user()->id
         ]);
+
+        $commentable->author->notify(
+            new CommentCreatedNotification($comment, $commentable, $comment->user)
+        );
 
         return response()->json(new CommentResource($comment->load('user:id,name')), 201);
     }

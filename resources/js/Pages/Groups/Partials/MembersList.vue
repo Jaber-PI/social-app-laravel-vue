@@ -9,9 +9,14 @@ const searchKey = ref('');
 
 
 function changeRole(userId, role, groupId) {
-    router.post(route('groups.changeRole', groupId), { user_id: userId, role }, { preserveScroll: true })
+    router.put(route('groups.changeRole', groupId), { user_id: userId, role }, { preserveScroll: true })
 }
-
+function removeMember(userId, groupId) {
+    if (!confirm('are you sure')) {
+        return;
+    }
+    router.put(route('groups.remove-member', groupId), { user_id: userId }, { preserveScroll: true })
+}
 </script>
 
 <template>
@@ -31,14 +36,22 @@ function changeRole(userId, role, groupId) {
                         <div class="font-bold text-l sm:text-xl">
                             {{ member.isCurrentUser ? 'You' : member.name }}
                         </div>
-                        <div class="ml-4">
+                        <div class="flex items-center">
+                            <button v-if="isAdmin && !member.isCurrentUser"
+                                @click="removeMember(member.id, member.group_id)"
+                                class="text-red-500 mr-4 hover:text-red-700 transition">
+                                Delete
+                            </button>
                             <select :disabled="!isAdmin || member.isCurrentUser" v-model="member.role"
                                 @change="changeRole(member.id, member.role, member.group_id)"
                                 class="border rounded px-2 pr-8  py-1 bg-white text-gray-700 focus:outline-none disabled:border-none disabled:bg-transparent transition">
+                                <option disabled value="">Select Role</option>
                                 <option value="member">Member</option>
                                 <option value="admin">Admin</option>
                             </select>
+
                         </div>
+
                     </div>
                 </div>
             </template>

@@ -11,10 +11,8 @@ use App\Http\Requests\UpdateGroupRequest;
 use App\Http\Resources\GroupMemberResource;
 use App\Http\Resources\GroupPostResource;
 use App\Http\Resources\GroupResource;
-use App\Http\Resources\PostResource;
 use App\Models\Group;
 use App\Models\GroupUser;
-use App\Models\User;
 use App\Notifications\Group\GroupInvitation;
 use App\Notifications\Group\GroupInviteApproved;
 use App\Notifications\Group\GroupJoinRequest;
@@ -251,12 +249,16 @@ class GroupController extends Controller
     }
 
     // admin remove
-    public function removeMember(Group $group, User $user)
+    public function removeMember(Group $group, Request $request)
     {
+        $data = $request->validate([
+            'user_id' => ['required', 'numeric'],
+        ]);
+
         $this->authorize('update', $group);
 
         $membership = GroupUser::where('group_id', $group->id)
-            ->where('user_id', $user->id)
+            ->where('user_id', $data['user_id'])
             ->first();
 
         if ($membership) {
@@ -300,7 +302,7 @@ class GroupController extends Controller
 
     public function posts(Group $group)
     {
-        $posts = $group->posts()->with(['author', 'attachments', 'reactedByAuthUser','group','group.currentUserMembership'])->withCount('reactions', 'comments')
+        $posts = $group->posts()->with(['author', 'attachments', 'reactedByAuthUser', 'group', 'group.currentUserMembership'])->withCount('reactions', 'comments')
             ->latest()
             ->cursorPaginate(5)
             ->withQueryString();

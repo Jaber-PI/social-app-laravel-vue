@@ -15,6 +15,11 @@ class Comment extends Model
 
     protected $fillable = ['post_id', 'created_by', 'body'];
 
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

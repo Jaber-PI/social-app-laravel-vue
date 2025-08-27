@@ -24,7 +24,7 @@ class StorePostRequest extends FormRequest
         return [
             'body' => ['string', 'nullable', 'max:255'],
             'attachments' => ['array', 'max:10'], // Must be an array of files
-            'group_id' => 'nullable|numeric',
+            'group_id' => 'nullable|numeric|exists:groups,id',
             'attachments.*' => [
                 'file',                             // Each item must be a file
                 'mimes:jpg,jpeg,png,pdf,doc,docx.mp3,mp4',  // Allowed file types
