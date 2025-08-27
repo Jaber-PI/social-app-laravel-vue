@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Notification;
+use Inertia\Inertia;
 
 class PostController extends Controller
 {
@@ -37,10 +38,15 @@ class PostController extends Controller
 
     public function show(Request $request, Post $post)
     {
+        $post->load('author', 'group', 'group.currentUserMembership', 'attachments', 'reactedByAuthUser')->loadCount('reactions', 'comments');
+
         if ($request->wantsJson()) {
-            return response()->json(new PostResource($post->load('author', 'attachments', 'reactedByAuthUser')->loadCount('reactions', 'comments')));
+            return response()->json(new PostResource($post));
         }
-        return;
+
+        return Inertia::render('Posts/Show', [
+            'post' => new PostResource($post)
+        ]);
     }
 
     public function latest(Request $request)
@@ -82,8 +88,6 @@ class PostController extends Controller
             if ($request->group_id) {
                 Notification::send($group->approvedMembers, new PostCreatedNotification($post, $request->user(), $group));
             }
-
-
         } catch (\Exception $e) {
             DB::rollBack();
             foreach ($allFilesPaths as $path) {

@@ -177,7 +177,7 @@ const showingNavigationDropdown = ref(false);
                             <ResponsiveNavLink :href="route('login')" as="button">
                                 Log In
                             </ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('register')"  as="button">
+                            <ResponsiveNavLink :href="route('register')" as="button">
                                 Sign Up
                             </ResponsiveNavLink>
                         </template>
@@ -185,11 +185,21 @@ const showingNavigationDropdown = ref(false);
 
                 </div>
             </nav>
-
             <!-- Page Content -->
-            <main class="h-screen pt-14 overflow-hidden">
-                <slot />
-            </main>
+            <div class="h-screen mx-auto container pt-20 overflow-hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4  h-full overflow-auto scroll-smooth ">
+                    <!-- Left Sidebar -->
+                    <aside class="hidden lg:flex flex-col gap-2 h-full ">
+                        <div class="bg-white">
+                            Future sidebar content
+                        </div>
+                    </aside>
+
+                    <main class="col-span-1 lg:col-span-2 pb-3 px-2 ">
+                        <slot />
+                    </main>
+                </div>
+            </div>
         </div>
     </div>
 </template>

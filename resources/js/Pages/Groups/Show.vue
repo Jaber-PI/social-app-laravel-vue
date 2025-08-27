@@ -1,9 +1,9 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import GroupLayout from '@/Pages/Groups/layouts/GroupLayout.vue'
 import { Head } from '@inertiajs/vue3';
 import GroupTabs from './Partials/GroupTabs.vue';
 import GroupHeader from './Partials/GroupHeader.vue';
+import MainLayout from '@/Layouts/MainLayout.vue';
 
 
 const props = defineProps({
@@ -19,16 +19,12 @@ const props = defineProps({
 
     <Head :title="group.name" />
     <AuthenticatedLayout>
-        <div class="container pt-20 mx-auto h-full">
-            <!-- Delegate layout responsibility to GroupLayout -->
-            <GroupLayout>
-                <div class="rounded-t-lg shadow">
-                    <GroupHeader :group="group" />
-                </div>
-
-                <GroupTabs v-bind="{ group, currentTab, members }" />
-            </GroupLayout>
-        </div>
-
+        <!-- Delegate layout responsibility to GroupLayout -->
+        <MainLayout>
+            <div class="rounded-t-lg shadow">
+                <GroupHeader :group="group" />
+            </div>
+            <GroupTabs v-bind="{ group, currentTab, members }" />
+        </MainLayout>
     </AuthenticatedLayout>
 </template>

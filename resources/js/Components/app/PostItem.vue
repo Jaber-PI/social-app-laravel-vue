@@ -1,5 +1,5 @@
 <script setup>
-import { ChatBubbleOvalLeftEllipsisIcon, HandThumbUpIcon, ShareIcon } from "@heroicons/vue/24/solid";
+import { ChatBubbleOvalLeftEllipsisIcon, EyeIcon, HandThumbUpIcon, PaperClipIcon, ShareIcon, TrashIcon } from "@heroicons/vue/24/solid";
 
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 import { ChevronDownIcon } from '@heroicons/vue/20/solid'
@@ -14,6 +14,7 @@ import axiosClient from "@/lib/axiosClient";
 
 
 import PostComments from "./PostComments.vue";
+import EditorModal from "./EditorModal.vue";
 
 const props = defineProps({
     post: Object
@@ -26,13 +27,21 @@ const toggleReadMore = () => {
     readMore.value = !readMore.value;
 }
 
-const emit = defineEmits(['editClick', 'previewAttachment', "postDeleted"]);
+const emit = defineEmits([ 'previewAttachment', "postUpdated", "postDeleted"]);
 
 
-const editClick = () => {
-    emit('editClick', props.post);
+const editClick = (post) => {
+    editPost.value = post;
+    showEditModal.value = true;
+    return;
 }
 
+const editPost = ref({});
+const showEditModal = ref(false);
+
+function updatePost(post) {
+    emit('postUpdated', post)
+}
 
 function deletePost() {
     if (window.confirm("Are You sure to Delete this Post?")) {
@@ -54,7 +63,7 @@ function previewAttachment(ind) {
 
 const reacted = ref(props.post.has_reacted)
 const reactionsCount = ref(props.post.reactions_count)
-
+// when reacted on post
 const react = async () => {
     try {
         const response = await axiosClient.post(`/posts/${props.post.id}/reaction`)
@@ -67,6 +76,8 @@ const react = async () => {
 
 <template>
     <div class="flex relative flex-col bg-white p-2 rounded-2xl shadow-sm">
+
+        <EditorModal v-if="showEditModal" :post="editPost" v-model="showEditModal" @post-updated="updatePost" />
 
         <!-- dropdown menu  -->
         <Menu as="div" class="absolute top-4 right-4 inline-block text-left z-10">
@@ -85,9 +96,18 @@ const react = async () => {
                     class="absolute right-0  w-40 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
                     <div class="px-1 py-1" v-if="post.can.update">
                         <MenuItem>
-                        <button class='group cursor-pointer flex w-full items-center rounded-md px-1 py-1 text-xs'
-                            @click="editClick">
-                            Edit
+                        <Link :href="route('posts.show', post.id)">
+                        <button class='group cursor-pointer flex w-full items-center rounded-md px-3 py-2 text-xs'>
+                            <EyeIcon class="w-5 mr-3" /> Show Post
+                        </button>
+                        </Link>
+                        </MenuItem>
+                    </div>
+                    <div class="px-1 py-1" v-if="post.can.update">
+                        <MenuItem>
+                        <button class='group cursor-pointer flex w-full items-center rounded-md px-3 py-2 text-xs'
+                            @click="editClick(post)">
+                            <PaperClipIcon class="w-5 mr-3" /> Edit
                         </button>
                         </MenuItem>
                     </div>
@@ -95,9 +115,9 @@ const react = async () => {
                         <MenuItem v-slot="{ active }">
                         <button :class="[
                             active ? 'bg-gray-400 text-white' : 'text-gray-900',
-                            'group flex w-full items-center rounded-md px-1 py-1 text-xs',
+                            'group flex w-full items-center rounded-md px-3 py-2 text-xs',
                         ]" @click="deletePost">
-                            Delete
+                            <TrashIcon class="w-5 mr-3" /> Delete
                         </button>
                         </MenuItem>
                     </div>
@@ -145,7 +165,7 @@ const react = async () => {
 
         <!-- attachments section  -->
         <div v-if="post.attachments"
-            class="relative w-full rounded-t-2xl grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-1">
+            class="relative w-full rounded-t-2xl grid place-items-center grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-1">
             <div v-for="(attachment, ind) of post.attachments.slice(0, 4)" :key="attachment.id"
                 @click="previewAttachment(ind)" class="group overflow-hidden hover:b cursor-pointer relative ">
 
@@ -193,9 +213,7 @@ const react = async () => {
         <!-- Post Footer -->
         <div class="flex justify-evenly items-center rounded-b-2xl  shadow-md text-gray-400  border-t">
             <!-- like and react button  -->
-            <button
-            :disabled="!post.can.react"
-            @click="react" :class="[
+            <button :disabled="!post.can.react" @click="react" :class="[
                 'px-3 py-1 rounded-full flex items-center gap-1 text-sm font-medium transition-all',
                 reacted
                     ? 'text-gray-800'
@@ -204,7 +222,7 @@ const react = async () => {
                 class="inputIcon flex justify-center items-center px-5 py-3 rounded-none rounded-bl-2xl hover:text-gray-800 cursor-pointer">
                 <HandThumbUpIcon class="h-5" />
                 <p class="ms-4 text-xs sm:text-base">Like <span>{{ reactionsCount ? '(' + reactionsCount + ')' : ""
-                }}</span></p>
+                        }}</span></p>
             </button>
             <!-- commenting button  -->
             <button @click="showComments = !showComments"

@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import PostItem from './PostItem.vue';
 import EditorModal from './EditorModal.vue';
 import AttachmentPreviewModal from './AttachmentPreviewModal.vue';
+import { useAttachmentsPreviewModal } from '@/composables/useAttachmentsPreviewModal';
 
 import axiosClient from "@/lib/axiosClient";
 
@@ -21,35 +22,14 @@ const props = defineProps({
 })
 
 
-const editPost = ref({});
-const showEditModal = ref(false);
+const { showPreviewModal ,openPreviewModal } = useAttachmentsPreviewModal();
 
-const showPreviewModal = ref(false);
 
-const attachments = ref([]);
-const attachmentIndex = ref(0)
+const loading = ref(false);
+const noMorePosts = ref(false);
+const posts = ref([]);
+const cursor = ref(null);
 
-const openPreviewModal = (postAttachments, index) => {
-    showPreviewModal.value = true;
-    attachments.value = postAttachments;
-    attachmentIndex.value = index;
-    return;
-}
-
-const openEditModal = (post) => {
-    editPost.value = post;
-    showEditModal.value = true;
-    return;
-}
-
-function updatePost(post) {
-
-    const index = posts.value.findIndex(p => p.id === post.id);
-    if (index !== -1) {
-        posts.value[index] = post;
-    }
-
-}
 
 function deletePost(postId) {
     posts.value = posts.value.filter(post => post.id !== postId);
@@ -58,12 +38,14 @@ function deletePost(postId) {
 function addPost(post) {
     posts.value.unshift(post);
 }
+function updatePost(post) {
 
-const loading = ref(false);
-const noMorePosts = ref(false);
-const posts = ref([]);
-const cursor = ref(null);
+    const index = posts.value.findIndex(p => p.id === post.id);
+    if (index !== -1) {
+        posts.value[index] = post;
+    }
 
+}
 
 const loadPosts = async () => {
     if (loading.value || noMorePosts.value) return
@@ -109,14 +91,12 @@ onMounted(() => {
         <NewPost v-if="canCreate" @postCreated="addPost" :group-id="groupId" />
     </div>
 
-    <EditorModal v-if="showEditModal" :post="editPost" v-model="showEditModal" @post-updated="updatePost" />
-
     <AttachmentPreviewModal v-if="showPreviewModal" :attachmentIndex="attachmentIndex" :attachments="attachments"
         @closed="showPreviewModal = false" />
 
     <div class="posts flex flex-col gap-2 px-1">
-        <PostItem v-for="post in posts" @previewAttachment="openPreviewModal" @editClick="openEditModal" :key="post.id"
-            :post="post" @post-deleted="deletePost" />
+        <PostItem v-for="post in posts" @previewAttachment="openPreviewModal" :key="post.id"
+            :post="post" @post-deleted="deletePost" @post-upated="updatePost"/>
     </div>
 
     <div v-if="loading" class="text-center py-4">Loading...</div>
