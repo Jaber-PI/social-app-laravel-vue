@@ -5,6 +5,7 @@ use App\Http\Controllers\GroupController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -42,7 +43,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/{group}/users/request', 'cancelRequest')->name('cancelRequest');
         Route::delete('/{group}/users/leave', 'leave')->name('leave');
 
-        Route::put('/{group}/users/remove','removeMember')->name('remove-member');
+        Route::put('/{group}/users/remove', 'removeMember')->name('remove-member');
 
         Route::post('/{group}/users/{request}/approve', 'approveRequest')->name('approve');
         Route::post('/{group}/users/{request}/reject', 'rejectRequest')->name('reject');
@@ -58,20 +59,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // comments routes
-    Route::get('/comments', [CommentController::class, 'index'])->name('comments.index');
-    Route::post('/comments', [CommentController::class, 'store'])->name('comments.store')
-        ->middleware('can:create,App\Models\Comment');
+    Route::prefix('/comments')->controller(CommentController::class)->name('comments.')->group(function () {
+        Route::get('/', [CommentController::class, 'index'])->name('index');
+        Route::post('/', [CommentController::class, 'store'])->name('store')
+            ->middleware('can:create,App\Models\Comment');
 
-    Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])
-        ->name('comments.delete')
-        ->middleware('can:delete,comment');
+        Route::delete('/{comment}', [CommentController::class, 'destroy'])
+            ->name('delete')
+            ->middleware('can:delete,comment');
 
-    Route::put('/comments/{comment}', [CommentController::class, 'update'])
-        ->name('comments.update')
-        ->middleware('can:update,comment');
+        Route::put('/{comment}', [CommentController::class, 'update'])
+            ->name('update')
+            ->middleware('can:update,comment');
 
-    Route::post('/comments/{comment}/reaction', [CommentController::class, 'react'])
-        ->name('comments.react');
+        Route::post('/{comment}/reaction', [CommentController::class, 'react'])
+            ->name('react');
+    });
 
 
     Route::get('/attachments/{attachment}/download', [PostController::class, 'downloadAttachment'])
@@ -81,9 +84,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('', 'edit')->name('edit');
         Route::patch('', 'update')->name('update');
         Route::delete('', 'destroy')->name('delete');
+
+        Route::get('/{user}/posts', 'posts')->name('posts');
+        Route::get('/{user}/followers', 'followers')->name('followers');
+        Route::get('/{user}/followings', 'followings')->name('followings');
+
         // route to update and save image (avatar or cover )
         Route::post('/{user}/image', 'saveImage')->name('image.store');
     });
+
+    Route::post('/follow/{user}', [UserController::class, 'follow'])->name('users.follow');
+    Route::delete('/unfollow/{user}', [UserController::class, 'unfollow'])->name('users.unfollow');
 });
 
 require __DIR__ . '/auth.php';

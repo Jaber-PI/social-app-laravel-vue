@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Http\Resources\UserPostResource;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -20,21 +21,45 @@ class ProfileController extends Controller
     /**
      * Display the user's profile.
      */
-    public function show(User $user): Response
+    public function show(User $user, Request $request)
     {
+        $user->loadCount(['followers', 'posts', 'comments']);
+        $user->load('followers');
+
+        $validTabs = ['posts', 'about', 'followers'];
+
+        $currentTab = $request->query('tab', 'posts');
+        // Validate tab parameter
+        if (!in_array($currentTab, $validTabs)) {
+            // Redirect to valid tab if invalid tab provided
+            return redirect()->route('groups.show', [
+                'user' => $user->id,
+                'tab' => 'posts'
+            ]);
+        }
+
+        /*
+        * @var \App\Models\User|null $currentUser
+        */
+        $currentUser = Auth::user();
+
         return Inertia::render('Profile/Show', [
             'profile' => new UserResource($user),
             'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => session('status'),
             "can" => [
-                "connect" => Auth::user() ? true : false,
-                "edit" => Auth::id() === $user->id ? true : false,
-            ]
+                "follow" => $currentUser && $currentUser->id !== $user->id,
+                "edit" => $currentUser && $currentUser->id === $user->id,
+            ],
+            'is_current_user' => $currentUser && $currentUser->id === $user->id,
+            // check if the authenticated user is following the profile user
+            'is_following' => $currentUser ? $currentUser->isFollowing($user->id) : false,
+            'current_tab' => $currentTab,
         ]);
     }
 
     /**
-     * Display the user's profile form.
+    //  * Display the user's profile form.
      */
     public function edit(Request $request): Response
     {
@@ -81,7 +106,6 @@ class ProfileController extends Controller
         return Redirect::to('/');
     }
 
-
     // save cover and avatara image
     public function saveImage(Request $request, User $user)
     {
@@ -115,5 +139,25 @@ class ProfileController extends Controller
             return Redirect::back()->with('success', 'Operation completed successfully!');
             return response()->json(['success' => true, 'message' => 'Operation completed successfully!']);
         }
+    }
+
+    public function posts(User $user)
+    {
+        $posts = $user->posts()
+            ->with(['author', 'attachments', 'reactedByAuthUser'])
+            ->withCount('reactions', 'comments')
+            ->whereNull('group_id')
+            ->latest()
+            ->cursorPaginate(5)
+            ->withQueryString();
+
+        return UserPostResource::collection($posts);
+    }
+
+    public function followers(User $user)
+    {
+        $followers = $user->followers()->with('follower')->latest()->cursorPaginate(5);
+
+        return UserResource::collection($followers);
     }
 }

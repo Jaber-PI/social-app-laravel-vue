@@ -123,11 +123,6 @@ class GroupController extends Controller
 
         $invitee->notify(new GroupInvitation($invite));
 
-        // $invite->user_id
-        // ? $user->notify(new GroupInvitation($invite))
-        // : Mail::to($request->email)->send(new GroupInviteMail($invite));
-
-
         return response()->json(['message' => 'Invitation sent successfully.']);
     }
 
@@ -302,7 +297,8 @@ class GroupController extends Controller
 
     public function posts(Group $group)
     {
-        $posts = $group->posts()->with(['author', 'attachments', 'reactedByAuthUser', 'group', 'group.currentUserMembership'])->withCount('reactions', 'comments')
+        $posts = $group->posts()
+        ->with(['author', 'attachments', 'reactedByAuthUser', 'group', 'group.currentUserMembership'])->withCount('reactions', 'comments')
             ->latest()
             ->cursorPaginate(5)
             ->withQueryString();

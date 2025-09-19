@@ -1,5 +1,7 @@
 <script setup>
 
+
+import { Head } from '@inertiajs/vue3';
 import MainLayout from '@/Layouts/MainLayout.vue';
 import PostItem from '@/Components/app/PostItem.vue';
 import AttachmentPreviewModal from '@/Components/app/AttachmentPreviewModal.vue';
@@ -15,6 +17,7 @@ const { attachmentIndex,attachments, showPreviewModal ,openPreviewModal } = useA
 </script>
 
 <template>
+    <Head :title="post.body.slice(0,12)" />
     <MainLayout>
         <PostItem :post="post" @previewAttachment="openPreviewModal"/>
 

@@ -1,5 +1,4 @@
 <script setup>
-import { ref } from 'vue';
 
 import DisclosureNavItem from '@/Components/app/DisclosureNavItem.vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
@@ -13,11 +12,56 @@ import FriendList from '@/Components/app/FriendList.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 
-const user = usePage().props.auth.user;
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+
+import emitter from '@/lib/eventBus';
 
 
 const showingNavigationDropdown = ref(false);
 
+const page = usePage()
+
+const user = page.props.auth.user;
+
+const success = computed(() => page.props.flash.success)
+const errors = computed(() => page.props.errors)
+
+
+const toasts = ref([])
+
+// Watch for new messages and push them into `toasts`
+watch(success, (val) => {
+    if (val) addToast(val, 'success')
+})
+
+watch(errors, (val) => {
+    if (val.error) addToast(val.error, 'error')
+})
+
+function addToast(message, type) {
+    const id = Date.now()
+    toasts.value.push({ id, message, type })
+
+    // Auto remove after 4s
+    setTimeout(() => {
+        toasts.value = toasts.value.filter(t => t.id !== id)
+    }, 4000)
+}
+
+
+const handleToastEvent = (payload) => {
+    addToast(payload.message, payload.type);
+};
+
+// When the component mounts, start listening for the 'show-toast' event
+onMounted(() => {
+    emitter.on('show-toast', handleToastEvent);
+});
+
+// When the component unmounts, clean up the listener to prevent memory leaks
+onUnmounted(() => {
+    emitter.off('show-toast', handleToastEvent);
+});
 
 </script>
 
@@ -190,15 +234,24 @@ const showingNavigationDropdown = ref(false);
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4  h-full overflow-auto scroll-smooth ">
                     <!-- Left Sidebar -->
                     <aside class="hidden lg:flex flex-col gap-2 h-full ">
-                        <div class="bg-white">
-                            Future sidebar content
-                        </div>
+                        <slot name="sidebar"></slot>
                     </aside>
 
                     <main class="col-span-1 lg:col-span-2 pb-3 px-2 ">
-                        <slot />
+                        <slot>
+                        </slot>
                     </main>
                 </div>
+            </div>
+        </div>
+
+        <!-- Toast container -->
+        <div class="fixed bottom-4 right-4 space-y-2 z-50">
+            <div v-for="toast in toasts" :key="toast.id" :class="[
+                'px-4 py-2 rounded-lg shadow-lg text-white animate-fade-in-up',
+                toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'
+            ]">
+                {{ toast.message }}
             </div>
         </div>
     </div>

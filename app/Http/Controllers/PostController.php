@@ -161,6 +161,10 @@ class PostController extends Controller
 
     public function downloadAttachment(PostAttachment $attachment)
     {
+        // $this->authorize('download', $attachment);
+        if (!Storage::disk('public')->exists($attachment->file_path)) {
+            abort(404);
+        }
         return response()->download(Storage::disk('public')->path($attachment->file_path), $attachment->filename);
     }
 }

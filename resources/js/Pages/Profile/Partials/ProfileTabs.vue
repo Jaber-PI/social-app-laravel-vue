@@ -1,14 +1,15 @@
 <script setup>
 import { computed } from 'vue';
-import PostsTab from './PostsTab.vue';
-import AboutTab from './AboutTab.vue';
-import MembersTab from './MembersTab.vue';
 import { ref } from 'vue';
+import { PhotoIcon } from '@heroicons/vue/24/solid';
+import PostsTab from './PostsTab.vue';
+import AboutTab from './ProfileAboutTab.vue';
+import FollowersTab from './FollowersTab.vue';
 
 // Props
 const props = defineProps({
-    group: { type: Object, required: true },
-    members: { type: Array, default: () => [] },
+    profile: { type: Object, required: true },
+    followersCount: { type: Number, default: 0 },
     currentTab: { type: String, default: 'posts' },
 });
 
@@ -26,14 +27,13 @@ const switchTab = (tabKey) => {
 };
 
 const tabs = [
-    { key: 'posts', label: 'Posts' },
-    { key: 'about', label: 'About' },
-    { key: 'members', label: 'Members' }
+    { key: 'posts', label: 'Posts (' + props.profile.posts_count + ')', icon: PhotoIcon },
+    { key: 'about', label: 'About', icon: PhotoIcon },
+    // { key: 'photos', label: 'Photos', icon: PhotoIcon },
+    { key: 'followers', label: 'Followers (' + props.followersCount + ')', icon: PhotoIcon },
 ];
 
-
 const membersCount = computed(() => props.members.length);
-
 
 const getTabClasses = (tabKey) => {
     const isActive = activeTab.value === tabKey;
@@ -53,29 +53,23 @@ const panelClasses = 'rounded-sm bg-white p-3 ring-white/60 ring-offset-2 ring-o
         <div class="flex space-x-1 bg-white p-1 border-b mb-4">
             <button v-for="tab in tabs" :key="tab.key" :class="getTabClasses(tab.key)" @click="switchTab(tab.key)">
                 {{ tab.label }}
-                <span v-if="tab.key === 'members'" class="ml-1">({{ membersCount }})</span>
             </button>
         </div>
 
         <div class="tab-content">
-            <div v-show="activeTab === 'posts'" class="tab-panel">
-                <PostsTab :group="group" />
+            <div v-show="activeTab === 'posts'" :class="panelClasses" >
+                <PostsTab :user="profile" />
             </div>
 
-            <div v-show="activeTab === 'about'" class="tab-panel">
-                <AboutTab :group="group" />
+            <div v-show="activeTab === 'about'" :class="panelClasses" >
+                <AboutTab :user="profile" />
             </div>
 
-            <div v-show="activeTab === 'members'" class="tab-panel">
-                <MembersTab :group="group" :members="members" />
+            <div v-show="activeTab === 'followers'" :class="panelClasses" >
+                <FollowersTab :followers_count="followersCount" :user="profile" />
             </div>
         </div>
     </div>
 </template>
 
 
-<style scoped>
-.tab-panel {
-    @apply rounded-sm bg-white p-3 ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none;
-}
-</style>

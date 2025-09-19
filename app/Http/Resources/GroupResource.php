@@ -49,6 +49,7 @@ class GroupResource extends JsonResource
                     'post' =>  $this->isAdmin(),
                     'join' =>  $this->isNotMember(),
                     'leave' =>  $this->isApproved(),
+                    'cancel' => $this->isPending(),
                     'viewMembers' =>  $this->isApproved() || $this->is_public,
                     'viewPendingRequests' =>  $this->isAdmin(),
                     'promoteMembers' => $this->isAdmin(),

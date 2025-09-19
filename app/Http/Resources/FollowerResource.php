@@ -2,14 +2,12 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Follower;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
 
-class UserResource extends JsonResource
+class FollowerResource extends JsonResource
 {
-    public static $wrap = false;
     /**
      * Transform the resource into an array.
      *
@@ -17,19 +15,13 @@ class UserResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return [
-            'id' => $this->id,
+         return [
             'name' => $this->name,
             'username' => $this->username,
-            'email' => $this->email,
             'avatar_url' => $this->avatar_path ? Storage::url($this->avatar_path) : '/images/monir.jpeg',
-            'cover_url' => $this->cover_path ? Storage::url($this->cover_path) : null,
-
             'followers_count' => $this->whenCounted('followers'),
             'posts_count' => $this->whenCounted('posts'),
-            'comments_count' => $this->whenCounted('comments'),
 
-            'followers' => FollowerResource::collection($this->whenLoaded('followers')),
         ];
     }
 }

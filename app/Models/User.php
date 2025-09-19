@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -60,10 +61,29 @@ class User extends Authenticatable implements MustVerifyEmail
             ->doNotGenerateSlugsOnUpdate();
     }
 
+    public function followers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'followers', 'user_id', 'follower_id');
+    }
+
+    public function followings(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'followers', 'follower_id', 'user_id');
+    }
+
+    public function isFollowing($userId): bool
+    {
+        return $this->followings()->wherePivot('user_id', $userId)->exists();
+    }
 
     public function posts(): HasMany
     {
         return $this->hasMany(Post::class, 'created_by');
+    }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class, 'created_by');
     }
 
 
@@ -80,8 +100,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function groups()
     {
         return $this->belongsToMany(Group::class, 'group_users')
-        ->withPivot('role', 'status', 'approved_at', 'added_by');
+            ->withPivot('role', 'status', 'approved_at', 'added_by');
     }
+
+
 
     // public function groupMemberships()
     // {
