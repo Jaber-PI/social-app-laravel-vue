@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Follower;
 use App\Models\User;
+use App\Notifications\FollowNotification;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 
 class UserController extends Controller
 {
@@ -16,6 +18,9 @@ class UserController extends Controller
             'follower_id' => Auth::id(),
             'created_ar' => now(),
         ]);
+
+        $user->notify(new FollowNotification(Auth::user()));
+
         return back()->with('success', 'You are now following ' . $user->name);
     }
 
