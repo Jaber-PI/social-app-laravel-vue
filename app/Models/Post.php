@@ -72,9 +72,14 @@ class Post extends Model
             ->where('status', 'approved')
             ->pluck('group_id');
 
-        return $query->where(function ($q) use ($userId, $userGroupsIds) {
-            $q->whereNull('group_id')
-                ->orWhereIn('group_id', $userGroupsIds);
+        $userFollowingsIds = Follower::where('follower_id', $userId)->pluck('user_id');
+
+        return $query->where(function ($q) use ($userId, $userGroupsIds, $userFollowingsIds) {
+            $q->where(function ($query) use ( $userFollowingsIds) {
+                $query->whereNull('group_id')->whereIn('created_by',  $userFollowingsIds);
+            })
+                ->orWhereIn('group_id', $userGroupsIds)
+            ;
         });
     }
 
